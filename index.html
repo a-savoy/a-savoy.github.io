@@ -96,7 +96,10 @@ img { max-width: 100%; height: auto; display: block; }
 .gallery-track { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 .gallery-placeholder { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); color: var(--text-muted); font-size: 0.7rem; letter-spacing: 0.05em; cursor: zoom-in; transition: all 0.3s ease; }
         .gallery-placeholder.expanded { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; background: rgba(0,0,0,0.95); border-radius: 0; border: none; cursor: zoom-out; }
-        .gallery-img.expanded { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; object-fit: contain; border-radius: 0; cursor: zoom-out; }
+        .gallery-img { cursor: zoom-in; }
+        #lightbox { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.92); cursor: zoom-out; align-items: center; justify-content: center; }
+        #lightbox.active { display: flex; }
+        #lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 4px; cursor: default; }
 .tools-area { position: relative; display: flex; flex-direction: column; gap: 0; }
 .tool-card { padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px; transition: border-color 0.3s; margin-bottom: 1rem; }
 .tool-card:hover { border-color: var(--border-hover); }
@@ -356,9 +359,17 @@ a.pub-title:hover svg.ext-arrow { transform: scale(1.3); }
         document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
     </script>
     <script>
-        document.querySelectorAll('.gallery-placeholder, .gallery-img').forEach(el => {
-            el.addEventListener('click', () => el.classList.toggle('expanded'));
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        document.querySelectorAll('.gallery-img').forEach(el => {
+            el.addEventListener('click', () => {
+                lightboxImg.src = el.src;
+                lightboxImg.alt = el.alt;
+                lightbox.classList.add('active');
+            });
         });
+        lightbox.addEventListener('click', () => lightbox.classList.remove('active'));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') lightbox.classList.remove('active'); });
     </script>
 </body>
 </html>
