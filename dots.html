@@ -26,8 +26,10 @@
   #connections path.visible { opacity: 0.25; }
 
   /* Savoy-authored nodes: dark grayish blue */
-  .dot.savoy { background: #3a6b9f; }
-  #connections path.savoy-line { stroke: #3a6b9f; }
+  .dot.savoy-music { background: #3a6b9f; }
+  .dot.savoy-text { background: #888; }
+  #connections path.savoy-music-line { stroke: #3a6b9f; }
+  #connections path.savoy-text-line { stroke: #888; }
 
   /* Neighborhood highlight on hover */
   .dot.revealed { transition: opacity 0.4s ease, transform 0.15s ease; }
@@ -190,7 +192,12 @@ var nodes = [
 {id:115,sound:"Fields.mp3",text:"",attr:"Andrew Savoy"},
 {id:116,sound:"Wheat Field in Shifting Wind & Light.mp3",text:"",attr:"Andrew Savoy"},
 {id:117,sound:"The Moth and the Window.mp3",text:"",attr:"Andrew Savoy"},
-{id:118,sound:"The Bird and the Bear.mp3",text:"",attr:"Andrew Savoy"}
+{id:118,sound:"The Bird and the Bear.mp3",text:"",attr:"Andrew Savoy"},
+{id:119,sound:"Vale.mp3",text:"",attr:"Andrew Savoy"},
+{id:120,sound:"Sigh.mp3",text:"",attr:"Andrew Savoy"},
+{id:121,sound:"Quasi improvvisando (George Crumb).mp3",text:"",attr:"George Crumb"},
+{id:122,sound:"Sehr langsam und \u00e4u\u00dferst ruhig (Anton Webern).mp3",text:"",attr:"Anton Webern"},
+{id:123,sound:"Shooting Stars (Poul Ruders).mp3",text:"",attr:"Poul Ruders"}
 ];
 
 var connectionDefs = {
@@ -259,7 +266,7 @@ var connectionDefs = {
   63:[64,65,57],
   64:[57,63,61],
   65:[63,62],
-  66:[77,78,80,115,116,117,118],
+  66:[77,78,80,115,116,117,118,119,120,121,122,123],
   67:[68,73],
   68:[67,70],
   69:[70,76],
@@ -312,6 +319,11 @@ var connectionDefs = {
   116:[66,115],
   117:[66,115,118],
   118:[66,117],
+  119:[66],
+  120:[66],
+  121:[66,122,123],
+  122:[66,121,123],
+  123:[66,121,122],
 };
 
 // Cross-network bridges (quote/aphorism <-> poem)
@@ -425,12 +437,16 @@ var overlayAttribution = document.getElementById('overlay-attribution');
 var dots = [];
 var dotMap = {};
 
-var savoyNodes = {};
-nodes.forEach(function(n) { if (n.attr === 'Andrew Savoy') savoyNodes[n.id] = true; });
+var savoyMusic = {};
+var savoyText = {};
+nodes.forEach(function(n) {
+  if (n.attr === 'Andrew Savoy' && n.sound) savoyMusic[n.id] = true;
+  else if (n.attr === 'Andrew Savoy') savoyText[n.id] = true;
+});
 
 positions.forEach(function(pos) {
   var el = document.createElement('div');
-  el.className = 'dot' + (bridgeNodes[pos.id] ? ' bridge' : '') + (savoyNodes[pos.id] ? ' savoy' : '');
+  el.className = 'dot' + (bridgeNodes[pos.id] ? ' bridge' : '') + (savoyMusic[pos.id] ? ' savoy-music' : '') + (savoyText[pos.id] ? ' savoy-text' : '');
   el.style.left = pos.x + 'px';
   el.style.top = pos.y + 'px';
   canvas.appendChild(el);
@@ -518,7 +534,8 @@ function drawCurve(dotA, dotB) {
   d+=' L '+pts[pts.length-1].x+' '+pts[pts.length-1].y;
   var path=document.createElementNS('http://www.w3.org/2000/svg','path');
   path.setAttribute('d',d);
-  if (savoyNodes[dotA.id] && savoyNodes[dotB.id]) path.classList.add('savoy-line');
+  if (savoyMusic[dotA.id] && savoyMusic[dotB.id]) path.classList.add('savoy-music-line');
+  else if (savoyText[dotA.id] && savoyText[dotB.id]) path.classList.add('savoy-text-line');
   svg.appendChild(path);
   requestAnimationFrame(function(){requestAnimationFrame(function(){path.classList.add('visible');});});
   drawnCurves[key]=path;
