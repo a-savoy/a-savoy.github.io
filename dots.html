@@ -550,7 +550,7 @@ function showContent(dot) {
   var existingAudio = overlayQuote.querySelector('audio');
   if (existingAudio) { existingAudio.pause(); existingAudio.currentTime = 0; }
   if (n.sound) {
-    var title = n.sound.replace('.mp3', '');
+    var title = n.sound.replace('.mp3', ''); if (n.attr === 'Andrew Savoy' && n.sound) title += '<span style="color:#fff"> (Andrew Savoy)</span>';
     overlayQuote.innerHTML = '<div style="font-size:18px;color:#000;margin-bottom:16px;">' + title + '</div><audio controls style="width:100%;"><source src="' + encodeURI(n.sound) + '" type="audio/mpeg">Your browser does not support audio.</audio>';
   } else {
     overlayQuote.textContent = n.text;
