@@ -527,7 +527,7 @@ function showContent(dot) {
   var existingAudio = overlayQuote.querySelector('audio');
   if (existingAudio) { existingAudio.pause(); existingAudio.currentTime = 0; }
   if (n.sound) {
-    overlayQuote.innerHTML = '<audio controls autoplay style="width:100%;margin-top:20px;"><source src="' + n.sound + '" type="audio/mpeg">Your browser does not support audio.</audio>';
+    overlayQuote.innerHTML = '<audio controls style="width:100%;margin-top:20px;"><source src="' + n.sound + '" type="audio/mpeg">Your browser does not support audio.</audio>';
   } else {
     overlayQuote.textContent = n.text;
   }
@@ -564,7 +564,10 @@ function dismissOverlay() {
   }
 }
 
-overlay.addEventListener('click', function() { dismissOverlay(); });
+overlay.addEventListener('click', function(e) {
+  if (e.target.closest('audio')) return;
+  dismissOverlay();
+});
 
 // Neighborhood highlight on hover
 var hlTimeout = null;
