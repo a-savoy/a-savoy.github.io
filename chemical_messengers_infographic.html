@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=0.9, minimum-scale=0.3, maximum-scale=5.0, user-scalable=yes">
 <title>Chemical Messengers: Onset vs. Effect Duration</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
@@ -548,8 +548,13 @@ if (isMobile) {
   dots.on("touchstart", function(ev, d) {
     ev.preventDefault();
     ev.stopPropagation();
+    // If tapping the same dot, dismiss
+    if (activeDot === this) {
+      hideTip(activeDot, d);
+      return;
+    }
     // Reset previous
-    if (activeDot && activeDot !== this) {
+    if (activeDot) {
       const prevD = d3.select(activeDot).datum();
       hideTip(activeDot, prevD);
     }
@@ -561,10 +566,9 @@ if (isMobile) {
   }, {passive: false});
 
   document.addEventListener("touchstart", function(ev) {
-    // Check if tap is on a dot (SVG path with class "dot") or the tooltip
+    if (!activeDot) return;
     const onDot = ev.target.classList && ev.target.classList.contains("dot");
-    const onTip = ev.target.closest && ev.target.closest("#tip");
-    if (activeDot && !onDot && !onTip) {
+    if (!onDot) {
       const prevD = d3.select(activeDot).datum();
       hideTip(activeDot, prevD);
     }
