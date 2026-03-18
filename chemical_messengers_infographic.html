@@ -44,6 +44,10 @@ body {
   padding: 2rem 1rem 3rem;
   font-family: 'IBM Plex Sans', sans-serif;
   transition: background 0.25s;
+  overflow-x: hidden;
+}
+@media (max-width: 700px) {
+  body { padding: 0.5rem 0.5rem 2rem; }
 }
 
 /* ── SVG STRUCTURAL COLORS — managed by CSS so theme toggle works ─────────── */
@@ -111,7 +115,7 @@ body.light #theme-toggle .switch::after {
   background: #4a5272;
 }
 
-#wrap { position: relative; }
+#wrap { position: relative; width: 100%; max-width: 1010px; overflow: visible; }
 
 #tip {
   position: fixed;
@@ -123,7 +127,19 @@ body.light #theme-toggle .switch::after {
   opacity: 0;
   transition: opacity 0.12s;
   width: 290px;
+  max-width: calc(100vw - 20px);
+  max-height: 80vh;
+  overflow-y: auto;
   z-index: 100;
+}
+@media (max-width: 700px) {
+  #tip { width: auto; min-width: 240px; padding: 12px 14px; font-size: 0.9em; }
+  .tn { font-size: 13px !important; }
+  .tsub { font-size: 10px !important; }
+  .tl { min-width: 110px !important; font-size: 11px !important; }
+  .tv { font-size: 11px !important; }
+  .ts { font-size: 11px !important; }
+  #theme-toggle { top: 10px; right: 12px; }
 }
 .tsub { font-size: 11px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; margin-bottom: 8px; line-height: 1.45; }
 .tn { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 2px;
@@ -294,14 +310,25 @@ function ratioLabel(dur, onset) {
   return `~${Math.round(r/100)*100}× (major amplification)`;
 }
 
-// ── DIMENSIONS ────────────────────────────────────────────────────────────────
-const mg = {top:72, right:220, bottom:90, left:100};
-const TW = 1010, TH = 720;
+// ── RESPONSIVE DIMENSIONS ────────────────────────────────────────────────────
+const isMobile = window.innerWidth < 700;
+const mg = isMobile
+  ? {top:60, right:16, bottom:70, left:56}
+  : {top:72, right:220, bottom:90, left:100};
+const TW = isMobile ? 420 : 1010;
+const chartH = isMobile ? 400 : 558;  // H = TH - mg.top - mg.bottom
+const legendH = isMobile ? 360 : 0;   // extra height below chart for legend on mobile
+const TH = mg.top + chartH + mg.bottom + legendH;
 const W = TW - mg.left - mg.right;
-const H = TH - mg.top - mg.bottom;
+const H = chartH;
 
 const svg = d3.select("#wrap").append("svg")
-  .attr("width", TW).attr("height", TH);
+  .attr("viewBox", `0 0 ${TW} ${TH}`)
+  .attr("preserveAspectRatio", "xMidYMin meet")
+  .style("width", "100%")
+  .style("height", "auto");
+const bgRect = svg.insert("rect", ":first-child")
+  .attr("width", TW).attr("height", TH).attr("fill", "var(--bg)");
 const g = svg.append("g").attr("transform", `translate(${mg.left},${mg.top})`);
 
 // ── SCALES ────────────────────────────────────────────────────────────────────
@@ -344,40 +371,65 @@ const yTickFmt  = {
 const xAx = d3.axisBottom(xSc).tickValues(xTickVals).tickFormat(d=>xTickFmt[d]||"");
 const yAx = d3.axisLeft(ySc).tickValues(yTickVals).tickFormat(d=>yTickFmt[d]||"");
 
+const tickFS = isMobile ? "9px" : "13px";
 g.append("g").attr("class","x-axis").attr("transform",`translate(0,${H})`).call(xAx).call(ax=>{
   ax.select(".domain").style("stroke", "var(--axis)");
   ax.selectAll("line").style("stroke", "var(--axis)");
   ax.selectAll("text").style("fill", "var(--text-muted)")
-    .attr("font-family","IBM Plex Mono,monospace").attr("font-size","13px").attr("dy","1.2em");
+    .attr("font-family","IBM Plex Mono,monospace").attr("font-size",tickFS).attr("dy","1.2em");
 });
 g.append("g").attr("class","y-axis").call(yAx).call(ax=>{
   ax.select(".domain").style("stroke", "var(--axis)");
   ax.selectAll("line").style("stroke", "var(--axis)");
   ax.selectAll("text").style("fill", "var(--text-muted)")
-    .attr("font-family","IBM Plex Mono,monospace").attr("font-size","13px").attr("dx","-0.4em");
+    .attr("font-family","IBM Plex Mono,monospace").attr("font-size",tickFS).attr("dx","-0.4em");
 });
 
 // Axis labels
-g.append("text").attr("x",W/2).attr("y",H+66)
-  .attr("text-anchor","middle")
-  .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","14.5px").attr("letter-spacing","0.05em")
-  .attr("class","axis-label").style("fill", "var(--text-muted)").text("ONSET SPEED  ·  time from release to first receptor activation  (→ faster)");
-
-g.append("text").attr("transform","rotate(-90)").attr("x",-H/2).attr("y",-74)
-  .attr("text-anchor","middle")
-  .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","14.5px").attr("letter-spacing","0.05em")
-  .attr("class","axis-label").style("fill", "var(--text-muted)").text("EFFECT DURATION  ·  downstream cellular effect lifetime  (↑ longer)");
+if (isMobile) {
+  g.append("text").attr("x",W/2).attr("y",H+48)
+    .attr("text-anchor","middle")
+    .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","10px").attr("letter-spacing","0.03em")
+    .attr("class","axis-label").style("fill", "var(--text-muted)").text("ONSET SPEED (→ faster)");
+  g.append("text").attr("transform","rotate(-90)").attr("x",-H/2).attr("y",-40)
+    .attr("text-anchor","middle")
+    .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","10px").attr("letter-spacing","0.03em")
+    .attr("class","axis-label").style("fill", "var(--text-muted)").text("EFFECT DURATION (↑ longer)");
+} else {
+  g.append("text").attr("x",W/2).attr("y",H+66)
+    .attr("text-anchor","middle")
+    .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","14.5px").attr("letter-spacing","0.05em")
+    .attr("class","axis-label").style("fill", "var(--text-muted)").text("ONSET SPEED  ·  time from release to first receptor activation  (→ faster)");
+  g.append("text").attr("transform","rotate(-90)").attr("x",-H/2).attr("y",-74)
+    .attr("text-anchor","middle")
+    .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","14.5px").attr("letter-spacing","0.05em")
+    .attr("class","axis-label").style("fill", "var(--text-muted)").text("EFFECT DURATION  ·  downstream cellular effect lifetime  (↑ longer)");
+}
 
 // ── TITLE ─────────────────────────────────────────────────────────────────────
-svg.append("text").attr("x",mg.left).attr("y",32)
-  .attr("font-family","Playfair Display,serif")
-  .attr("font-size","23px").attr("font-weight","700").attr("letter-spacing","0.02em")
-  .attr("class","title-text").style("fill", "var(--text)").text("Onset Speed vs. Effect Duration of Neural Signaling Molecules");
-
-svg.append("text").attr("x",mg.left).attr("y",52)
-  .attr("font-family","IBM Plex Mono,monospace")
-  .attr("font-size","12.5px").attr("letter-spacing","0.05em")
-  .attr("class","subtitle-text").style("fill", "var(--text-dim)").text("36 molecules · 42 data points · logarithmic axes · hover for details · click legend items to filter");
+if (isMobile) {
+  svg.append("text").attr("x",mg.left).attr("y",22)
+    .attr("font-family","Playfair Display,serif")
+    .attr("font-size","14px").attr("font-weight","700").attr("letter-spacing","0.02em")
+    .attr("class","title-text").style("fill", "var(--text)").text("Onset Speed vs. Effect Duration");
+  svg.append("text").attr("x",mg.left).attr("y",37)
+    .attr("font-family","Playfair Display,serif")
+    .attr("font-size","14px").attr("font-weight","700").attr("letter-spacing","0.02em")
+    .attr("class","title-text").style("fill", "var(--text)").text("of Neural Signaling Molecules");
+  svg.append("text").attr("x",mg.left).attr("y",52)
+    .attr("font-family","IBM Plex Mono,monospace")
+    .attr("font-size","9px").attr("letter-spacing","0.03em")
+    .attr("class","subtitle-text").style("fill", "var(--text-dim)").text("42 data points · tap for details · tap legend to filter");
+} else {
+  svg.append("text").attr("x",mg.left).attr("y",32)
+    .attr("font-family","Playfair Display,serif")
+    .attr("font-size","23px").attr("font-weight","700").attr("letter-spacing","0.02em")
+    .attr("class","title-text").style("fill", "var(--text)").text("Onset Speed vs. Effect Duration of Neural Signaling Molecules");
+  svg.append("text").attr("x",mg.left).attr("y",52)
+    .attr("font-family","IBM Plex Mono,monospace")
+    .attr("font-size","12.5px").attr("letter-spacing","0.05em")
+    .attr("class","subtitle-text").style("fill", "var(--text-dim)").text("36 molecules · 42 data points · logarithmic axes · hover for details · click legend items to filter");
+}
 
 // ── JITTER ────────────────────────────────────────────────────────────────────
 // A small deterministic offset per point prevents exact overlap when molecules
@@ -442,8 +494,9 @@ const dots = g.selectAll(".dot").data(M).enter()
 
 // ── TOOLTIP ───────────────────────────────────────────────────────────────────
 const tip = document.getElementById("tip");
-dots.on("mouseover", function(ev, d) {
-  d3.select(this).attr("fill-opacity",1).attr("stroke-width",2.5).attr("stroke-opacity",0.95);
+let activeDot = null;
+
+function showTip(d) {
   document.getElementById("tn").textContent = d.displayName || d.n;
   document.getElementById("tsub").textContent = d.sub || "";
   const tc = document.getElementById("tc"); tc.textContent = CLASS_LABELS[d.cls]; tc.style.color = COLORS[d.cls];
@@ -455,23 +508,68 @@ dots.on("mouseover", function(ev, d) {
   document.getElementById("ts").textContent  = d.role;
   document.getElementById("tcite").textContent = d.cite;
   tip.style.opacity = 1;
-}).on("mousemove", function(ev) {
+}
+
+function positionTip(clientX, clientY) {
   const th = tip.offsetHeight;
   const tw = tip.offsetWidth;
-  let tx = ev.clientX + 18;
-  let ty = ev.clientY - 12;
-  if (tx + tw + 10 > window.innerWidth)  tx = ev.clientX - tw - 10;
-  if (ty + th + 10 > window.innerHeight) ty = ev.clientY - th - 10;
-  if (ty < 0) ty = 4;
+  let tx = clientX + 18;
+  let ty = clientY - 12;
+  if (tx + tw + 10 > window.innerWidth)  tx = clientX - tw - 10;
+  if (ty + th + 10 > window.innerHeight) ty = clientY - th - 10;
+  if (tx < 4) tx = 4;
+  if (ty < 4) ty = 4;
   tip.style.left = tx + "px"; tip.style.top = ty + "px";
-}).on("mouseout", function(ev, d) {
+}
+
+function hideTip(el, d) {
   const vis = dotVisible(d);
-  d3.select(this)
+  d3.select(el)
     .attr("fill-opacity",   vis ? 0.82 : 0.07)
     .attr("stroke-width",   1.5)
     .attr("stroke-opacity", vis ? 0.5  : 0.0);
   tip.style.opacity = 0;
+  activeDot = null;
+}
+
+// Desktop: hover
+dots.on("mouseover", function(ev, d) {
+  d3.select(this).attr("fill-opacity",1).attr("stroke-width",2.5).attr("stroke-opacity",0.95);
+  showTip(d);
+}).on("mousemove", function(ev) {
+  positionTip(ev.clientX, ev.clientY);
+}).on("mouseout", function(ev, d) {
+  hideTip(this, d);
 });
+
+// Mobile: tap to show, tap elsewhere to dismiss
+if (isMobile) {
+  tip.style.width = Math.min(280, window.innerWidth - 20) + "px";
+  dots.on("touchstart", function(ev, d) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    // Reset previous
+    if (activeDot && activeDot !== this) {
+      const prevD = d3.select(activeDot).datum();
+      hideTip(activeDot, prevD);
+    }
+    activeDot = this;
+    d3.select(this).attr("fill-opacity",1).attr("stroke-width",2.5).attr("stroke-opacity",0.95);
+    showTip(d);
+    const touch = ev.touches[0];
+    positionTip(touch.clientX, touch.clientY);
+  }, {passive: false});
+
+  document.addEventListener("touchstart", function(ev) {
+    // Check if tap is on a dot (SVG path with class "dot") or the tooltip
+    const onDot = ev.target.classList && ev.target.classList.contains("dot");
+    const onTip = ev.target.closest && ev.target.closest("#tip");
+    if (activeDot && !onDot && !onTip) {
+      const prevD = d3.select(activeDot).datum();
+      hideTip(activeDot, prevD);
+    }
+  });
+}
 
 // ── FILTER STATE ─────────────────────────────────────────────────────────────
 // Each set holds the currently ACTIVE (visible) keys.
@@ -528,13 +626,16 @@ function applyFilters() {
 }
 
 // ── LEGEND ────────────────────────────────────────────────────────────────────
-const lx = mg.left + W + 22;
-let ly = mg.top;
+const lx = isMobile ? mg.left : mg.left + W + 22;
+let ly = isMobile ? mg.top + H + mg.bottom + 10 : mg.top;
 
 // Class (color) legend
+const legFS = isMobile ? "10px" : "12px";
+const legHeaderFS = isMobile ? "9px" : "10.5px";
+const legRowH = isMobile ? 14 : 16;
 svg.append("text").attr("x",lx).attr("y",ly)
   .style("fill", "var(--text-dim)").attr("font-family","IBM Plex Mono,monospace")
-  .attr("font-size","10.5px").attr("letter-spacing","0.14em").attr("class","legend-header").text("CLASS");
+  .attr("font-size",legHeaderFS).attr("letter-spacing","0.14em").attr("class","legend-header").text("CLASS");
 ly += 15;
 
 Object.entries(CLASS_LABELS).forEach(([key, label]) => {
@@ -558,17 +659,17 @@ Object.entries(CLASS_LABELS).forEach(([key, label]) => {
     .attr("fill", COLORS[key]).attr("fill-opacity", 0.88);
   row.append("text").attr("x",15).attr("y",3)
     .style("fill", "var(--text-muted)").attr("font-family","IBM Plex Mono,monospace")
-    .attr("class","legend-label").attr("font-size","12px").text(label);
+    .attr("class","legend-label").attr("font-size",legFS).text(label);
 
   classRows[key] = row;
-  ly += 16;
+  ly += legRowH;
 });
 
 // Shape (location) legend
 ly += 12;
 svg.append("text").attr("x",lx).attr("y",ly)
   .style("fill", "var(--text-dim)").attr("font-family","IBM Plex Mono,monospace")
-  .attr("font-size","10.5px").attr("letter-spacing","0.14em").attr("class","legend-header").text("RECEPTOR LOCATION");
+  .attr("font-size",legHeaderFS).attr("letter-spacing","0.14em").attr("class","legend-header").text("RECEPTOR LOCATION");
 ly += 15;
 
 Object.entries(LOC_LABELS).forEach(([key, label]) => {
@@ -594,21 +695,21 @@ Object.entries(LOC_LABELS).forEach(([key, label]) => {
     .style("stroke", "var(--text-muted)").attr("stroke-width",1).attr("stroke-opacity",0.6);
   row.append("text").attr("x",14).attr("y",4)
     .attr("class","legend-label").attr("font-family","IBM Plex Mono,monospace")
-    .attr("font-size","12px").style("fill","var(--text-muted)").text(label);
+    .attr("font-size",legFS).style("fill","var(--text-muted)").text(label);
 
   locRows[key] = row;
-  ly += 17;
+  ly += isMobile ? 15 : 17;
 });
 
 // Size / prevalence legend
 ly += 10;
 svg.append("text").attr("x",lx).attr("y",ly)
   .style("fill", "var(--text-dim)").attr("font-family","IBM Plex Mono,monospace")
-  .attr("font-size","10.5px").attr("letter-spacing","0.14em").attr("class","legend-header").text("RECEPTOR PREVALENCE");
+  .attr("font-size",legHeaderFS).attr("letter-spacing","0.14em").attr("class","legend-header").text("RECEPTOR PREVALENCE");
 ly += 13;
 svg.append("text").attr("x",lx).attr("y",ly)
   .style("fill", "var(--text-dim)").attr("font-family","IBM Plex Mono,monospace")
-  .attr("font-size","9px").attr("class","legend-sub").text("click to set minimum threshold");
+  .attr("font-size", isMobile ? "8px" : "9px").attr("class","legend-sub").text(isMobile ? "tap to set minimum" : "click to set minimum threshold");
 ly += 14;
 
 [{pct:10,lbl:"≥ 10%"},{pct:40,lbl:"≥ 40%"},{pct:85,lbl:"≥ 85%"}].forEach(s => {
