@@ -124,8 +124,10 @@ body.light #theme-toggle .switch::after {
   border-radius: 4px;
   padding: 16px 18px;
   pointer-events: none;
+  user-select: none;
   opacity: 0;
   transition: opacity 0.12s;
+  cursor: text;
   width: 290px;
   max-width: calc(100vw - 20px);
   max-height: 80vh;
@@ -523,6 +525,8 @@ function positionTip(clientX, clientY) {
   tip.style.left = tx + "px"; tip.style.top = ty + "px";
 }
 
+let pinned = false;  // whether the tooltip is click-pinned (desktop)
+
 function hideTip(el, d) {
   const vis = dotVisible(d);
   d3.select(el)
@@ -530,7 +534,10 @@ function hideTip(el, d) {
     .attr("stroke-width",   1.5)
     .attr("stroke-opacity", vis ? 0.5  : 0.0);
   tip.style.opacity = 0;
+  tip.style.pointerEvents = "none";
+  tip.style.userSelect = "none";
   activeDot = null;
+  pinned = false;
 }
 
 function handleDotActivate(el, d, clientX, clientY) {
@@ -578,14 +585,47 @@ if (isMobile) {
   document.addEventListener("touchstart", handleDismiss);
   document.addEventListener("click", handleDismiss);
 } else {
-  // Desktop: hover
+  // Desktop: hover to preview, click to pin (selectable text), click elsewhere to dismiss
   dots.on("mouseover", function(ev, d) {
+    if (pinned) return;
     d3.select(this).attr("fill-opacity",1).attr("stroke-width",2.5).attr("stroke-opacity",0.95);
     showTip(d);
   }).on("mousemove", function(ev) {
+    if (pinned) return;
     positionTip(ev.clientX, ev.clientY);
   }).on("mouseout", function(ev, d) {
+    if (pinned) return;
     hideTip(this, d);
+  }).on("click", function(ev, d) {
+    ev.stopPropagation();
+    // If clicking the same dot while pinned, dismiss
+    if (pinned && activeDot === this) {
+      hideTip(activeDot, d);
+      return;
+    }
+    // If pinned on a different dot, dismiss old one first
+    if (pinned && activeDot) {
+      const prevD = d3.select(activeDot).datum();
+      hideTip(activeDot, prevD);
+    }
+    activeDot = this;
+    pinned = true;
+    d3.select(this).attr("fill-opacity",1).attr("stroke-width",2.5).attr("stroke-opacity",0.95);
+    showTip(d);
+    positionTip(ev.clientX, ev.clientY);
+    tip.style.pointerEvents = "auto";
+    tip.style.userSelect = "text";
+  });
+
+  document.addEventListener("click", function(ev) {
+    if (!pinned || !activeDot) return;
+    // Don't dismiss if clicking inside the tooltip
+    if (tip.contains(ev.target)) return;
+    const onDot = ev.target.classList && ev.target.classList.contains("dot");
+    if (!onDot) {
+      const prevD = d3.select(activeDot).datum();
+      hideTip(activeDot, prevD);
+    }
   });
 }
 
