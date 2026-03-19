@@ -176,7 +176,7 @@ body.light #theme-toggle .switch::after {
     <div class="tn" id="tn"></div>
     <div class="tsub" id="tsub"></div>
     <div class="tc" id="tc"></div>
-    <div class="tr"><span class="tl">Onset speed</span><span class="tv" id="to"></span></div>
+    <div class="tr"><span class="tl">Time to receptor binding</span><span class="tv" id="to"></span></div>
     <div class="tr"><span class="tl">Effect duration</span><span class="tv" id="td"></span></div>
     <div class="tr"><span class="tl">Receptor prevalence</span><span class="tv" id="trec"></span></div>
     <div class="tr"><span class="tl">Release location</span><span class="tv" id="trel"></span></div>
@@ -391,20 +391,20 @@ if (isMobile) {
   g.append("text").attr("x",W/2).attr("y",H+48)
     .attr("text-anchor","middle")
     .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","10px").attr("letter-spacing","0.03em")
-    .attr("class","axis-label").style("fill", "var(--text-muted)").text("ONSET SPEED (→ faster)");
+    .attr("class","axis-label").style("fill", "var(--text-muted)").text("TIME TO RECEPTOR BINDING");
   g.append("text").attr("transform","rotate(-90)").attr("x",-H/2).attr("y",-40)
     .attr("text-anchor","middle")
     .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","10px").attr("letter-spacing","0.03em")
-    .attr("class","axis-label").style("fill", "var(--text-muted)").text("EFFECT DURATION (↑ longer)");
+    .attr("class","axis-label").style("fill", "var(--text-muted)").text("EFFECT DURATION");
 } else {
   g.append("text").attr("x",W/2).attr("y",H+66)
     .attr("text-anchor","middle")
     .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","14.5px").attr("letter-spacing","0.05em")
-    .attr("class","axis-label").style("fill", "var(--text-muted)").text("ONSET SPEED  ·  time from release to first receptor activation  (→ faster)");
+    .attr("class","axis-label").style("fill", "var(--text-muted)").text("TIME TO RECEPTOR BINDING");
   g.append("text").attr("transform","rotate(-90)").attr("x",-H/2).attr("y",-74)
     .attr("text-anchor","middle")
     .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","14.5px").attr("letter-spacing","0.05em")
-    .attr("class","axis-label").style("fill", "var(--text-muted)").text("EFFECT DURATION  ·  downstream cellular effect lifetime  (↑ longer)");
+    .attr("class","axis-label").style("fill", "var(--text-muted)").text("EFFECT DURATION");
 }
 
 // ── TITLE ─────────────────────────────────────────────────────────────────────
@@ -412,7 +412,7 @@ if (isMobile) {
   svg.append("text").attr("x",mg.left).attr("y",22)
     .attr("font-family","Playfair Display,serif")
     .attr("font-size","14px").attr("font-weight","700").attr("letter-spacing","0.02em")
-    .attr("class","title-text").style("fill", "var(--text)").text("Onset Speed vs. Effect Duration");
+    .attr("class","title-text").style("fill", "var(--text)").text("Time to Receptor Binding vs. Effect Duration");
   svg.append("text").attr("x",mg.left).attr("y",37)
     .attr("font-family","Playfair Display,serif")
     .attr("font-size","14px").attr("font-weight","700").attr("letter-spacing","0.02em")
@@ -425,7 +425,7 @@ if (isMobile) {
   svg.append("text").attr("x",mg.left).attr("y",32)
     .attr("font-family","Playfair Display,serif")
     .attr("font-size","23px").attr("font-weight","700").attr("letter-spacing","0.02em")
-    .attr("class","title-text").style("fill", "var(--text)").text("Onset Speed vs. Effect Duration of Neural Signaling Molecules");
+    .attr("class","title-text").style("fill", "var(--text)").text("Time to Receptor Binding vs. Effect Duration of Neural Signaling Molecules");
   svg.append("text").attr("x",mg.left).attr("y",52)
     .attr("font-family","IBM Plex Mono,monospace")
     .attr("font-size","12.5px").attr("letter-spacing","0.05em")
