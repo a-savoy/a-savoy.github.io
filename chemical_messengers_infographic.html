@@ -336,7 +336,7 @@ const g = svg.append("g").attr("transform", `translate(${mg.left},${mg.top})`);
 // X: onset speed (fast on the left)
 // Y: effect duration (short at bottom, long at top)
 const xSc = d3.scaleLog().domain([1.5e-4, 2e5]).range([0, W]);
-const ySc = d3.scaleLog().domain([3e-3, 2e7]).range([H, 0]);
+const ySc = d3.scaleLog().domain([3e-3, 4e6]).range([H, 0]);
 
 
 
@@ -346,7 +346,7 @@ const ySc = d3.scaleLog().domain([3e-3, 2e7]).range([H, 0]);
     .attr("x1",xSc(v)).attr("x2",xSc(v)).attr("y1",0).attr("y2",H)
     .style("stroke", "rgba(136, 146, 164, 0.25)").style("stroke-width","1");
 });
-[1e-2,0.1,1,60,3600,86400,604800,2e6,1e7].forEach(v => {
+[1e-2,0.1,1,60,3600,86400,604800,2e6].forEach(v => {
   g.append("line").attr("class","grid-h")
     .attr("x1",0).attr("x2",W).attr("y1",ySc(v)).attr("y2",ySc(v))
     .style("stroke", "rgba(136, 146, 164, 0.25)").style("stroke-width","1");
@@ -363,10 +363,10 @@ const xTickFmt  = {
   [1e-3]:"1 ms",[1e-2]:"10 ms",[0.1]:"100 ms",[1]:"1 s",
   [60]:"1 min",[3600]:"1 hr",[86400]:"1 day"
 };
-const yTickVals = [1e-2,0.1,1,60,3600,86400,604800,2.6e6,1e7];
+const yTickVals = [1e-2,0.1,1,60,3600,86400,604800,2.6e6];
 const yTickFmt  = {
   [1e-2]:"10 ms",[0.1]:"100 ms",[1]:"1 s",[60]:"1 min",
-  [3600]:"1 hr",[86400]:"1 day",[604800]:"1 wk",[2.6e6]:"1 mo",[1e7]:"~4 mo"
+  [3600]:"1 hr",[86400]:"1 day",[604800]:"1 wk",[2.6e6]:"1 mo"
 };
 
 const xAx = d3.axisBottom(xSc).tickValues(xTickVals).tickFormat(d=>xTickFmt[d]||"");
