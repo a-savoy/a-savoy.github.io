@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Taxonomy of Addiction</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f2;
+      --text: #1c1c1c;
+      --muted: #8a8680;
+      --subtle: #d8d5ce;
+      --radius: 13px;
+      --card-size: 118px;
+      --gap: 11px;
+      --transition: 0.42s cubic-bezier(0.4, 0, 0.2, 1);
+      --dsm-mild: #a8c5a0;
+      --dsm-moderate: #e2b96f;
+      --dsm-severe: #d4826a;
+    }
+
+    /* ── MOBILE SCALING ── */
+    /* Scale the entire page-inner block to fit viewport width on small screens */
+    @media (max-width: 960px) {
+      .page-inner {
+        transform-origin: top center;
+        transform: scale(var(--page-scale, 1));
+        /* Height compensation so page doesn't leave blank space below */
+        margin-bottom: calc((var(--page-scale, 1) - 1) * 900px);
+      }
+      #grid-page {
+        padding: 24px 0 40px;
+        overflow-x: hidden;
+      }
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+    }
+
+    #grid-page {
+      min-height: 100vh;
+      padding: 52px 40px 80px;
+      display: flex; flex-direction: column; align-items: center;
+      opacity: 1; transform: translateY(0);
+      transition: opacity var(--transition), transform var(--transition);
+    }
+    .page-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    #mech-view {
+      width: 892px;
+    }
+    #alt-view {
+      width: 634px;
+    }
+    .legend {
+      width: 100%;
+    }
+    #grid-page.exit { opacity: 0; transform: translateY(-10px); pointer-events: none; }
+
+    .site-header { margin-bottom: 52px; }
+    .site-title { font-family: 'DM Serif Display', serif; font-size: 1.55rem; font-weight: 400; color: var(--text); letter-spacing: 0.01em; margin-bottom: 6px; }
+    .site-subtitle { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.05em; font-weight: 400; }
+
+    .table-outer { display: flex; flex-direction: column; }
+    .table-top { display: flex; align-items: flex-end; margin-bottom: 10px; }
+    .corner-spacer { width: 68px; flex-shrink: 0; }
+    .col-headers { display: flex; gap: var(--gap); }
+    .col-header { width: var(--card-size); flex-shrink: 0; padding-bottom: 10px; border-bottom: 1px solid var(--subtle); }
+    .col-header-name { font-size: 0.72rem; font-weight: 500; color: var(--text); letter-spacing: 0.02em; margin-bottom: 2px; }
+    .col-header-sub { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.04em; font-style: italic; }
+
+    .table-main { display: flex; }
+
+    .element-grid {
+      display: grid;
+      grid-template-columns: repeat(7, var(--card-size));
+      grid-template-rows: repeat(7, var(--card-size));
+      gap: var(--gap);
+    }
+    .element-card {
+      border-radius: var(--radius); border-width: 1px; border-style: solid;
+      padding: 10px 10px 8px 12px; cursor: pointer;
+      display: flex; flex-direction: column; justify-content: space-between;
+      transition: transform 0.18s ease, box-shadow 0.2s ease;
+      user-select: none;
+    }
+    .element-card:hover { transform: translateY(-3px); box-shadow: 0 6px 22px rgba(0,0,0,0.1); }
+
+
+    /* Recognition tier badge in card corner */
+    .card-recognition {
+      font-size: 0.5rem; font-weight: 500; letter-spacing: 0.04em;
+      color: rgba(0,0,0,0.32); font-style: italic;
+    }
+
+    /* Behavioral harm profile in detail view */
+    .harm-dim-label { font-size: 0.68rem; color: var(--muted); width: 168px; flex-shrink: 0; letter-spacing: 0.02em; }
+    .harm-qualifier { font-size: 0.6rem; color: var(--muted); font-style: italic; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--subtle); line-height: 1.6; }
+
+    /* Recognition tier in detail view */
+    .recognition-tier-block { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--subtle); display: flex; align-items: flex-start; gap: 12px; }
+    .recognition-tier-label { font-size: 0.68rem; color: var(--muted); width: 168px; flex-shrink: 0; letter-spacing: 0.02em; }
+    .recognition-tier-right { flex: 1; }
+    .recognition-tier-name { font-size: 0.72rem; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+    .recognition-tier-note { font-size: 0.67rem; color: var(--muted); font-style: italic; line-height: 1.55; }
+
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .card-number { font-size: 0.58rem; color: rgba(0,0,0,0.32); letter-spacing: 0.04em; font-weight: 400; }
+    .card-symbol { font-family: 'DM Serif Display', serif; font-size: 1.9rem; color: var(--text); line-height: 1; margin: 2px 0; }
+    .card-name { font-size: 0.57rem; color: rgba(0,0,0,0.52); letter-spacing: 0.02em; line-height: 1.3; font-weight: 400; }
+
+    .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+    .card-dsm-severity {
+      font-size: 0.52rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 1px 5px; border-radius: 3px; opacity: 0.85;
+    }
+    .dsm-mild     { background: rgba(168,197,160,0.35); color: #3d6e36; }
+    .dsm-moderate { background: rgba(226,185,111,0.35); color: #7a5208; }
+    .dsm-severe   { background: rgba(212,130,106,0.35); color: #7a2e18; }
+    .dsm-proposed { background: rgba(180,180,180,0.22); color: #666; }
+
+    .card-wd { width: 6px; height: 6px; border-radius: 50%; background: rgba(0,0,0,0.14); flex-shrink: 0; cursor: help; }
+    .card-wd.active { background: rgba(0,0,0,0.42); }
+
+    .legend { margin-top: 40px; display: flex; flex-direction: column; gap: 10px; }
+    .legend-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .legend-label { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.05em; }
+    .legend-dsm { display: flex; gap: 10px; align-items: center; }
+    .legend-dsm-item { display: flex; align-items: center; gap: 4px; font-size: 0.6rem; color: var(--muted); }
+    .legend-dsm-dot { width: 8px; height: 8px; border-radius: 2px; }
+    .legend-wd-item { display: flex; align-items: center; gap: 5px; font-size: 0.6rem; color: var(--muted); }
+    .legend-wd-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(0,0,0,0.42); }
+    .refs-section { margin-top: 28px; }
+    .refs-list { margin: 10px 0 0 18px; padding: 0; }
+    .ref-item { font-size: 0.67rem; line-height: 1.7; color: var(--muted); margin-bottom: 6px; }
+    .ref-authors { font-weight: 500; color: var(--text); }
+    .ref-year { color: var(--muted); margin: 0 3px; }
+    .ref-title { font-style: italic; }
+    .ref-journal { color: var(--muted); }
+
+    /* ── DETAIL PAGE ── */
+    #detail-page {
+      position: fixed; inset: 0; background: var(--bg); overflow-y: auto;
+      opacity: 0; pointer-events: none; transform: translateY(14px);
+      transition: opacity var(--transition), transform var(--transition);
+    }
+    #detail-page.visible { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+    .detail-inner { max-width: 720px; margin: 0 auto; padding: 56px 40px 100px; }
+
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: 0.72rem; color: var(--muted); cursor: pointer;
+      letter-spacing: 0.05em; margin-bottom: 52px;
+      background: none; border: none; font-family: 'DM Sans', sans-serif;
+      font-weight: 400; padding: 0; transition: color 0.2s;
+    }
+    .back-btn:hover { color: var(--text); }
+    .back-btn::before { content: '←'; }
+
+    .detail-hero { display: flex; align-items: flex-start; gap: 28px; margin-bottom: 36px; padding-bottom: 32px; border-bottom: 1px solid var(--subtle); }
+    .detail-card { width: 96px; height: 96px; border-radius: var(--radius); border-width: 1px; border-style: solid; padding: 10px 10px 10px 12px; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; }
+    .detail-symbol { font-family: 'DM Serif Display', serif; font-size: 1.9rem; color: var(--text); line-height: 1; }
+    .detail-right { flex: 1; padding-top: 4px; }
+    .detail-name { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--text); line-height: 1.1; margin-bottom: 8px; }
+    .detail-group-badge { display: inline-block; font-size: 0.65rem; letter-spacing: 0.06em; font-weight: 500; padding: 3px 9px; border-radius: 20px; margin-bottom: 8px; color: rgba(0,0,0,0.6); }
+    .detail-mechanism { font-size: 0.78rem; color: var(--muted); font-style: italic; line-height: 1.6; font-weight: 300; }
+
+    .section-block { margin-bottom: 32px; }
+    .section-title { font-size: 0.62rem; letter-spacing: 0.08em; font-weight: 500; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+    .section-citation { font-size: 0.6rem; color: var(--muted); font-style: italic; margin-bottom: 14px; letter-spacing: 0.02em; }
+
+    .severity-bars { display: flex; flex-direction: column; gap: 10px; }
+    .severity-row { display: flex; align-items: center; gap: 12px; }
+    .severity-row-label { font-size: 0.68rem; color: var(--muted); width: 168px; flex-shrink: 0; letter-spacing: 0.02em; }
+    .severity-track { flex: 1; height: 4px; background: var(--subtle); border-radius: 2px; overflow: hidden; }
+    .severity-fill { height: 100%; border-radius: 2px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+    .severity-score { font-size: 0.65rem; color: var(--muted); width: 28px; text-align: right; }
+
+    .withdrawal-row { display: flex; align-items: flex-start; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--subtle); }
+    .withdrawal-label { font-size: 0.68rem; color: var(--muted); width: 168px; flex-shrink: 0; letter-spacing: 0.02em; padding-top: 2px; }
+    .withdrawal-right { flex: 1; }
+    .withdrawal-status { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 400; margin-bottom: 4px; }
+    .wd-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .wd-recognized { color: #3a3a3a; }
+    .wd-not { color: var(--muted); }
+    .withdrawal-note { font-size: 0.67rem; color: var(--muted); font-style: italic; line-height: 1.55; }
+
+    .dsm-toggle { cursor: pointer; user-select: none; display: block; }
+    .dsm-toggle:hover { opacity: 0.75; }
+    .dsm-chevron { font-size: 0.75rem; transition: transform 0.25s ease; display: inline-block; }
+    .dsm-chevron.open { transform: rotate(90deg); }
+    #dsm-collapsible { overflow: hidden; }
+    .dsm-category-label { font-size: 0.72rem; color: var(--text); font-weight: 400; letter-spacing: 0.02em; }
+    .dsm-severity-badge { font-size: 0.6rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
+    .dsm-note-text { font-size: 0.68rem; color: var(--muted); font-style: italic; margin-bottom: 20px; line-height: 1.6; }
+
+    .criteria-domain-group { margin-bottom: 18px; }
+    .criteria-domain-header { font-size: 0.58rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--subtle); }
+    .criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 16px; }
+    .criterion-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; border-radius: 7px; }
+    .criterion-item.prominent { background: rgba(0,0,0,0.038); }
+    .criterion-check { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; }
+    .criterion-check.on { background: rgba(0,0,0,0.52); }
+    .criterion-check.off { border: 1px solid var(--subtle); }
+    .criterion-check.on::after { content: ''; width: 5px; height: 3px; border-left: 1.5px solid #fff; border-bottom: 1.5px solid #fff; transform: rotate(-45deg) translateY(-1px); display: block; }
+    .criterion-text { font-size: 0.66rem; line-height: 1.45; font-weight: 300; }
+    .criterion-item.prominent .criterion-text { color: var(--text); }
+    .criterion-item:not(.prominent) .criterion-text { color: var(--muted); }
+
+    .detail-description { font-size: 0.93rem; line-height: 1.88; color: #383838; font-weight: 300; }
+    .detail-description p + p { margin-top: 1.15em; }
+    .detail-description em { font-family: 'DM Serif Display', serif; font-style: italic; font-weight: 400; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--subtle); border-radius: 3px; }
+
+    /* ── VIEW TOGGLE ── */
+    .view-toggle {
+      display: inline-flex; gap: 2px;
+      background: var(--subtle); border-radius: 8px;
+      padding: 2px; margin-bottom: 44px;
+    }
+    .view-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.67rem; font-weight: 400;
+      letter-spacing: 0.04em; color: var(--muted);
+      background: none; border: none;
+      padding: 6px 18px; border-radius: 6px;
+      cursor: pointer; transition: all 0.18s;
+    }
+    .view-btn.active { background: var(--bg); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.09); }
+    .view-btn:hover:not(.active) { color: var(--text); }
+
+    #mech-view.hidden { display: none; }
+    #alt-view { display: none; }
+    #alt-view.visible { display: flex; flex-direction: column; }
+
+    .alt-outer { display: flex; flex-direction: column; }
+    .alt-top { display: flex; align-items: flex-end; margin-bottom: 10px; gap: var(--gap); }
+    .alt-grid { display: flex; gap: var(--gap); align-items: flex-start; }
+    .alt-col { width: var(--card-size); flex-shrink: 0; display: flex; flex-direction: column; gap: var(--gap); }
+    .alt-col-header { width: var(--card-size); flex-shrink: 0; padding-bottom: 10px; border-bottom: 1px solid var(--subtle); }
+    .alt-col .element-card { width: var(--card-size); height: var(--card-size); }
+
+    .expand-toggle {
+      width: 100%; background: none;
+      border: 1px dashed var(--subtle); border-radius: var(--radius);
+      padding: 11px 8px; font-family: 'DM Sans', sans-serif;
+      font-size: 0.61rem; letter-spacing: 0.05em;
+      color: var(--muted); cursor: pointer;
+      transition: border-color 0.18s, color 0.18s; text-align: center;
+    }
+    .expand-toggle:hover { border-color: rgba(0,0,0,0.4); color: var(--text); }
+  </style>
+</head>
+<body>
+
+<div id="grid-page">
+  <div class="page-inner">
+  <div class="site-header">
+    <h1 class="site-title">Taxonomy of Addiction</h1>
+    <p class="site-subtitle" id="site-subtitle">Organized by mechanism of action — severity increases downward</p>
+  </div>
+
+  <div class="view-toggle">
+    <button class="view-btn active" id="btn-mech">By Mechanism</button>
+    <button class="view-btn" id="btn-alt">By Classification</button>
+  </div>
+
+  <!-- ── MECHANISM VIEW ── -->
+  <div id="mech-view">
+    <div class="table-outer">
+      <div class="table-top">
+        <div class="col-headers" id="col-headers"></div>
+      </div>
+      <div class="table-main">
+        <div class="element-grid" id="element-grid"></div>
+      </div>
+    </div>
+    <div class="legend">
+      <p class="legend-note">Each card shows four dimensions of addiction severity: Dependence Likelihood, Harm to Self, Harm to Others, and Difficulty of Quitting (0–100). Chemical substance scores are grounded in Anthony et al. (1994), Lopez-Quintero et al. (2011), and Nutt et al. (2010), <em>The Lancet</em>, with post-2010 adjustments. Behavioral addiction scores are editorial syntheses from peer-reviewed literature. All scores are calibrated estimates derived from a structured synthesis of the peer-reviewed literature, weighted for cross-addiction comparability. Card shading reflects overall severity within each column.</p>
+    </div>
+  </div>
+
+  <!-- ── CLASSIFICATION VIEW ── -->
+  <div id="alt-view">
+    <div class="alt-outer">
+      <div class="alt-top" id="alt-col-headers"></div>
+      <div class="alt-grid" id="alt-grid"></div>
+    </div>
+    <div class="legend" style="margin-top:40px">
+      <p class="legend-note">Classification reflects primary legal status in most Western jurisdictions. <em>Behavioral</em>: non-dietary activities with no substance consumed. <em>Food</em>: eating-related behavioral addictions. <em>Legal Substance</em>: freely available without prescription (caffeine, nicotine, alcohol). <em>Prescription Substance</em>: requires medical authorization; includes sedative-hypnotics, opioid analgesics, amphetamines, and ketamine. <em>Controlled Substance</em>: primarily illicit. Cards retain mechanism-view colours.</p>
+    </div>
+  </div>
+  </div>
+</div>
+
+<div id="detail-page">
+  <div class="detail-inner">
+    <button class="back-btn" id="back-btn">back</button>
+    <div class="detail-hero">
+      <div class="detail-card" id="d-card">
+        <div style="display:flex;justify-content:space-between">
+          <span style="font-size:0.58rem;color:rgba(0,0,0,0.32);letter-spacing:0.04em" id="d-num"></span>
+        </div>
+        <div class="detail-symbol" id="d-sym"></div>
+        <div style="font-size:0.58rem;color:rgba(0,0,0,0.5)" id="d-short"></div>
+      </div>
+      <div class="detail-right">
+        <div class="detail-name" id="d-name"></div>
+        <div class="detail-group-badge" id="d-badge"></div>
+        <div class="detail-mechanism" id="d-mechanism"></div>
+      </div>
+    </div>
+
+    <!-- Harm profile — filled dynamically by JS -->
+    <div class="section-block" id="harm-profile-section"></div>
+
+    <!-- DSM-5 section — collapsed by default -->
+    <div class="section-block">
+      <div class="section-title dsm-toggle" id="dsm-toggle">
+        DSM-5 Diagnostic Profile <span class="dsm-chevron" id="dsm-chevron">▸</span>
+      </div>
+      <div id="dsm-collapsible" style="display:none;">
+        <div class="dsm-header-row">
+          <span class="dsm-category-label" id="dsm-category"></span>
+          <span class="dsm-severity-badge" id="dsm-severity-badge"></span>
+        </div>
+        <div class="dsm-note-text" id="dsm-note"></div>
+        <div id="criteria-container"></div>
+      </div>
+    </div>
+
+    <div class="section-block">
+      <div class="section-title">Clinical Overview</div>
+      <div class="detail-description" id="d-body"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const groups = [
+  { name: 'Behavioral—Exteroceptive', subtitle: 'Operant & Social Reward', hue: 200, behavioral: true },
+  { name: 'Behavioral—Interoceptive', subtitle: 'Primary Drive Systems',   hue: 240, behavioral: true },
+  { name: 'Cannabis',             subtitle: 'CB₁ Agonists',            hue: 140 },
+  { name: 'Dissociatives',        subtitle: 'NMDA Antagonists',        hue: 90  },
+  { name: 'Stimulants',           subtitle: 'Catecholaminergic',       hue: 50  },
+  { name: 'Depressants',          subtitle: 'CNS Depressants / Multi-target', hue: 20  },
+  { name: 'Opioids',              subtitle: 'μ-Opioid Agonists',       hue: 345 },
+];
+const severityLabels = ['Mild','Low','Moderate','Significant','Severe','Extreme'];
+
+const DSM_CRITERIA = [
+  { id:1,  domain:'Impaired Control',  text:'Taken in larger amounts or over longer period than intended' },
+  { id:2,  domain:'Impaired Control',  text:'Persistent desire or unsuccessful efforts to cut down' },
+  { id:3,  domain:'Impaired Control',  text:'Great deal of time spent obtaining, using, or recovering' },
+  { id:4,  domain:'Impaired Control',  text:'Craving or strong urge to use' },
+  { id:5,  domain:'Social Impairment', text:'Failure to fulfill major role obligations' },
+  { id:6,  domain:'Social Impairment', text:'Continued use despite persistent interpersonal problems' },
+  { id:7,  domain:'Social Impairment', text:'Reduction or abandonment of important activities' },
+  { id:8,  domain:'Risky Use',         text:'Recurrent use in physically hazardous situations' },
+  { id:9,  domain:'Risky Use',         text:'Continued use despite known physical or psychological harm' },
+  { id:10, domain:'Pharmacological',   text:'Tolerance — markedly increased amounts needed for effect' },
+  { id:11, domain:'Pharmacological',   text:'Withdrawal — characteristic syndrome upon cessation' },
+];
+const DOMAIN_ORDER = ['Impaired Control','Social Impairment','Risky Use','Pharmacological'];
+
+const elements = [
+
+  // ── PHYSICAL / EMBODIED (col 0) ──
+  { symbol:'Ex', name:'Exercise', col:1, row:1, severity:1, behavioral:true,
+    recognitionShort:'',
+    mechanism:'Endorphin (β-endorphin) and endocannabinoid release during exercise; dopaminergic reinforcement of habitual motor sequences; withdrawal-like dysphoria upon cessation',
+    metrics:{ dependence:10, harmSelf:18, harmOthers:8, diffQuit:18, estimated:true },
+    dsm:{ category:'No DSM-5 Recognition', severity:'proposed', severityLabel:'Research Only',
+      withdrawal:false,
+      withdrawalNote:'No formal withdrawal syndrome recognized. Cessation dysphoria, irritability, and anxiety are well-documented in heavy exercisers but do not meet DSM-5 withdrawal criteria.',
+      prominent:[1,2,4,9],
+      note:'Exercise addiction has no DSM-5 or ICD-11 recognition. The literature is complicated by the fact that high-volume exercise is frequently normative in athletic populations, and the boundary between dedication and compulsion is contested. The construct is most clinically meaningful as a secondary addiction — exercise used to compensate for or avoid other distress.' },
+      refs:[
+    {authors:'Hausenblas HA & Downs DS', year:2002, title:'Exercise dependence: A systematic review', journal:'Psychology of Sport and Exercise'},
+    {authors:'Griffiths MD et al.', year:2005, title:'Exercise addiction: A case study', journal:'Addiction Research & Theory'},
+    {authors:'Allegre B et al.', year:2006, title:'Definitions and measures of exercise dependence', journal:'Addiction Research & Theory'},
+    {authors:'Mónok K et al.', year:2012, title:'Psychometric properties and concurrent validity of two exercise addiction measures', journal:'Psychology of Sport and Exercise'},
+    {authors:'Szabo A', year:1995, title:'The impact of exercise deprivation on well-being of habitual exercisers', journal:'Australian Journal of Science and Medicine in Sport'}
+  ],
+  description:`<p>Exercise addiction is characterized by a compulsive pattern of physical training that persists despite injury, relationship deterioration, or other significant harm. The neurobiological substrate involves β-endorphin and endocannabinoid release during sustained exercise, which produces real analgesic and anxiolytic effects that become increasingly necessary for baseline emotional regulation as tolerance develops. The runner's high has genuine pharmacological parallels to opioid and cannabinoid intoxication.</p><p>The construct is most clinically coherent as a secondary addiction — exercise used to manage anxiety, depression, or disordered eating — rather than a primary rewarding substance analogue. Prevalence estimates vary widely (0.5–3% of regular exercisers) depending on the instrument used. The condition is most commonly identified in endurance sport populations and frequently co-occurs with eating disorders, where compulsive exercise serves a compensatory caloric function that is distinct from the hedonic or anxiolytic exercise compulsion described here.</p>` },
+
+  { symbol:'Ts', name:'Thrill-Seeking', col:1, row:3, severity:3, behavioral:true,
+    recognitionShort:'',
+    mechanism:'Adrenergic arousal–dopamine reward cycle; blunted tonic dopamine in high sensation-seekers requiring intense stimulation; novelty-driven striatal dopamine release; norepinephrine-mediated arousal reinforcement',
+    metrics:{ dependence:8, harmSelf:28, harmOthers:12, diffQuit:15, estimated:true },
+    dsm:{ category:'No DSM-5 Recognition', severity:'proposed', severityLabel:'Research Only',
+      withdrawal:false,
+      withdrawalNote:'No formal withdrawal syndrome. Between high-risk episodes, high sensation-seekers may experience hedonic deficits and increased impulsivity that functionally parallel withdrawal, driven by relative dopaminergic insufficiency.',
+      prominent:[1,4,8,9],
+      note:'Risk and sensation-seeking addiction has no DSM-5 category. The trait of sensation-seeking, measured by Zuckerman\'s Sensation Seeking Scale, is a well-validated construct that predicts diverse risk behaviors. The compulsive end of this spectrum — where risk-taking becomes self-destructive and persistent despite severe consequences — is recognized clinically but not nosologically.' },
+      refs:[
+    {authors:'Zuckerman M', year:1994, title:'Behavioral Expressions and Biosocial Bases of Sensation Seeking', journal:'Cambridge University Press'},
+    {authors:'Heirene RM et al.', year:2016, title:'Addiction in extreme sports: An exploration of withdrawal states in rock climbers', journal:'Journal of Behavioral Addictions'},
+    {authors:'Breivik G', year:1996, title:'Personality, sensation seeking and risk taking among Everest climbers', journal:'International Journal of Sport Psychology'},
+    {authors:'Pain MT & Pain MA', year:2005, title:'Essay: Risk taking in sport', journal:'The Lancet'},
+    {authors:'Monasterio E et al.', year:2012, title:'Personality characteristics and psychiatric disorders in high-altitude mountaineers', journal:'Harvard Review of Psychiatry'}
+  ],
+  description:`<p>High sensation-seekers show tonic hypodopaminergia relative to low sensation-seekers, requiring intense or novel stimulation to achieve equivalent mesolimbic dopamine release. The adrenergic arousal produced by physically dangerous activities — extreme sports, reckless driving, high-stakes gambling variants — serves as a potent activator of the dopaminergic reward circuit through norepinephrine-to-dopamine cascades. Over repeated exposure, the threshold for satisfying arousal rises, driving escalation to progressively more dangerous stimuli.</p><p>This construct sits at the intersection of sensation-seeking as a stable trait and addiction as a dynamic behavioral pattern. The neurobiological evidence is strongest for the dopaminergic and adrenergic components, and the behavior shares the tolerance, escalation, and harm-persistence features of classical addiction. Physical harm is the primary risk: fatalities and severe injuries occur at elevated rates in individuals whose sensation-seeking reaches compulsive levels. The societal harm score reflects the potential for harm to bystanders (e.g., reckless driving) in addition to the self-directed risk.</p>` },
+
+  { symbol:'Wk', name:'Work', col:1, row:2, severity:2, behavioral:true,
+    recognitionShort:'',
+    mechanism:'Achievement-contingent dopamine release; intermittent variable reinforcement from task completion and performance metrics; money as abstract scorekeeping reward; cortisol-mediated stress arousal with blunted recovery',
+    metrics:{ dependence:18, harmSelf:28, harmOthers:22, diffQuit:30, estimated:true },
+    dsm:{ category:'No DSM-5 Recognition', severity:'proposed', severityLabel:'Research Only',
+      withdrawal:false,
+      withdrawalNote:'No formal withdrawal syndrome. Enforced rest in workaholics is associated with anxiety, dysphoria, and somatic symptoms that resolve on return to work — a functional analogue to withdrawal that lacks formal diagnostic status.',
+      prominent:[1,2,3,5,7,9],
+      note:'Work addiction (workaholism) has no DSM-5 or ICD-11 recognition. The Bergen Work Addiction Scale is the best-validated assessment tool. The condition is culturally complicated by the fact that high work engagement is frequently rewarded economically and socially, making the boundary between ambition and compulsion difficult to draw. The inclusion of money acquisition within this entry reflects its role as an abstract achievement metric driving compulsive behavior beyond rational need.' },
+      refs:[
+    {authors:'Oates W', year:1971, title:'Confessions of a Workaholic: The Facts About Work Addiction', journal:'World Publishing'},
+    {authors:'Andreassen CS et al.', year:2012, title:'Development of a work addiction scale', journal:'Scandinavian Journal of Psychology'},
+    {authors:'Schaufeli WB et al.', year:2008, title:'Workaholism, burnout and engagement: Three of a kind or three different kinds of employee well-being?', journal:'Applied Psychology: An International Review'},
+    {authors:'Griffiths MD', year:2011, title:'Workaholism: A 21st-century addiction', journal:'The Psychologist'},
+    {authors:'Ng TW et al.', year:2007, title:'Connecting organizational environments, individual characteristics, and workaholism: Two antecedents of workaholism', journal:'Journal of Management'}
+  ],
+  description:`<p>Work addiction is driven by achievement-contingent dopamine release in the mesolimbic system — the same circuitry that underlies classical reinforcement learning. Task completion, performance metrics, financial gain, and social status all activate dopaminergic reward pathways, and in work-addicted individuals, the threshold for satisfying stimulation escalates in the same pattern as substance tolerance. Money functions as an abstract scorekeeping system: the compulsion to acquire financial resources often persists far beyond any rational need, functioning as a proxy measure of achievement that is never definitively satisfied.</p><p>Chronic work addiction produces sustained hypercortisolaemia and suppression of the hypothalamic–pituitary–adrenal axis recovery phase, eventually contributing to cardiovascular disease, immune dysfunction, and burnout. The relational harm is particularly high: work addiction consistently predicts marital dissolution, parenting failures, and social isolation at rates comparable to alcohol use disorder. Cultural normalization — in many professional contexts, extreme work investment is actively praised — means that self-identification and help-seeking are substantially delayed relative to other addictions.</p>` },
+
+  { symbol:'Su', name:'Sugar', col:1, row:4, severity:4, behavioral:true,
+    recognitionShort:'',
+    mechanism:'μ-opioid receptor activation (sweetness); dopaminergic sensitization in nucleus accumbens; insulin-driven craving cycles; GABA-mediated palatability encoding; bingeing–withdrawal–craving cycle in animal models',
+    metrics:{ dependence:10, harmSelf:18, harmOthers:5, diffQuit:15, estimated:true },
+    dsm:{ category:'No DSM-5 Recognition', severity:'proposed', severityLabel:'Research Only',
+      withdrawal:true,
+      withdrawalNote:'Withdrawal-like symptoms have been consistently demonstrated in animal models of sugar bingeing (Avena et al.): anxiety, locomotor agitation, and somatic signs upon sugar deprivation. Human evidence is more limited and contested, but cravings, mood changes, and headache following sugar cessation are reported.',
+      prominent:[1,2,4,9,10],
+      note:'Sugar/food addiction has no DSM-5 recognition, and the construct remains contested. The Yale Food Addiction Scale is the primary assessment instrument. This entry represents the pharmacologically-driven end of the spectrum — characterised by bingeing on hyperpalatable foods and withdrawal-like symptoms — rather than general overeating. Binge Eating Disorder (the clinical entity) appears separately in this column.' },
+      refs:[
+    {authors:'Avena NM et al.', year:2008, title:'Evidence for sugar addiction: Behavioral and neurochemical effects of intermittent, excessive sugar intake', journal:'Neuroscience & Biobehavioral Reviews'},
+    {authors:'Colantuoni C et al.', year:2002, title:'Evidence that intermittent, excessive sugar intake causes endogenous opioid dependence', journal:'Obesity Research'},
+    {authors:'Westwater ML et al.', year:2016, title:'Sugar addiction: The state of the science', journal:'European Journal of Nutrition'},
+    {authors:'Ahmed SH et al.', year:2013, title:'Food addiction', journal:'Neuroscience & Biobehavioral Reviews'},
+    {authors:'Schulte EM et al.', year:2015, title:'Which foods may be addictive? The roles of processing, fat content, and glycemic load', journal:'PLOS ONE'}
+  ],
+  description:`<p>Sugar addiction occupies a genuinely intermediate position between behavioral and chemical addiction. The sweetness response activates μ-opioid receptors in the nucleus accumbens, and Avena et al. have demonstrated in rodent models that intermittent sugar access produces bingeing, withdrawal, craving, and cross-sensitization with drugs of abuse that closely parallel classical addiction phenomenology. Dopaminergic sensitization — the same mechanism underlying stimulant addiction — is documented with intermittent sugar bingeing in animal models, and receptor downregulation has been observed after chronic exposure.</p><p>In humans, the evidence is less definitive. Neuroimaging studies show reduced striatal D2 receptor availability in individuals who score highly on the Yale Food Addiction Scale, mirroring findings in substance use disorders. The societal harm is substantial but diffuse: ultra-processed, hyperpalatable food products constitute a major driver of the global obesity epidemic, with downstream metabolic disease burden that dwarfs most individual substance harms in aggregate. The food industry's deliberate engineering of palatability through sugar, fat, and salt combinations is the closest structural parallel in the food environment to pharmaceutical addiction liability optimization.</p>` },
+
+  { symbol:'Sb', name:'Sexual Behaviour', col:1, row:5, severity:5, behavioral:true,
+    recognitionShort:'ICD-11',
+    mechanism:'Dopaminergic novelty and reward anticipation; opioid-mediated consummatory pleasure; oxytocin and vasopressin dysregulation; pornography as supranormal stimulus accelerating sensitization',
+    metrics:{ dependence:18, harmSelf:35, harmOthers:28, diffQuit:38, estimated:false },
+    dsm:{ category:'ICD-11 Recognition (Not DSM-5)', severity:'moderate', severityLabel:'ICD-11',
+      withdrawal:false,
+      withdrawalNote:'No formal withdrawal syndrome recognized in ICD-11 or DSM-5. Cessation anxiety and irritability are reported but are more parsimoniously attributed to anxiety disorder comorbidity than to a distinct withdrawal process.',
+      prominent:[1,2,3,4,5,6,7,9],
+      note:'Compulsive Sexual Behaviour Disorder is recognized in ICD-11 (6C72) but was explicitly excluded from DSM-5 following debate about whether the evidence base was sufficient and whether the construct pathologizes high sexual frequency rather than a genuine disorder. The DSM-5 committee recommended further research. Pornography addiction is a highly contested subset: its distinct neurobiology from contact sexual behaviour is debated, though neuroimaging evidence shows similar cue-reactivity patterns to substance cravings.' },
+      refs:[
+    {authors:'Kafka MP', year:2010, title:'Hypersexual disorder: A proposed diagnosis for DSM-V', journal:'Archives of Sexual Behavior'},
+    {authors:'Kraus SW et al.', year:2016, title:'Compulsive sexual behaviour disorder in the ICD-11', journal:'World Psychiatry'},
+    {authors:'Potenza MN et al.', year:2017, title:'Compulsive sexual behaviour as a behavioural addiction', journal:'Addiction'},
+    {authors:'Gola M et al.', year:2017, title:'Can pornography be addictive? An fMRI study of men seeking treatment for problematic pornography use', journal:'Neuropsychopharmacology'},
+    {authors:'Reid RC et al.', year:2012, title:'DSM-5 and hypersexual disorder: Seeking a diagnostic entity', journal:'Sexual Addiction & Compulsivity'}
+  ],
+  description:`<p>Compulsive Sexual Behaviour Disorder, as recognized in ICD-11, is characterized by a persistent pattern of failure to control intense, repetitive sexual impulses or urges, leading to repetitive sexual behaviour despite adverse consequences. The neurobiological substrate involves the interaction of dopaminergic reward anticipation — particularly the motivational salience attribution that drives craving — with opioid-mediated consummatory reward and the oxytocin and vasopressin systems that normally regulate pair bonding and sexual satiation.</p><p>Pornography represents a specific and increasingly prevalent presentation. Internet pornography's combination of unlimited novelty, on-demand access, and supranormal visual stimulation may accelerate sensitization of the reward circuit beyond what contact sexual behavior typically produces. Neuroimaging studies have demonstrated cue-reactivity patterns in compulsive pornography users that closely parallel substance cue-reactivity — though this finding is contested and the methodology varies across studies. The relational harm is consistently high across studies: partnered individuals with compulsive sexual behavior report substantially elevated rates of relationship breakdown, infidelity, and sexual dysfunction, and treatment-seeking is often precipitated by disclosure and relationship crisis rather than self-identified harm.</p>` },
+
+  { symbol:'Be', name:'Binge Eating', col:1, row:6, severity:6, behavioral:true,
+    recognitionShort:'DSM-5',
+    mechanism:'Loss-of-control eating driven by negative affect; hyperactivation of the mesolimbic reward circuit during bingeing; impaired prefrontal inhibitory control; stress-driven cortisol-HPA axis dysregulation; elevated reward sensitivity and reduced satiation signaling',
+    metrics:{ dependence:16, harmSelf:38, harmOthers:10, diffQuit:32, estimated:false },
+    dsm:{ category:'Feeding and Eating Disorders (DSM-5, 307.51)', severity:'moderate', severityLabel:'DSM-5',
+      withdrawal:false,
+      withdrawalNote:'No formal withdrawal syndrome. Between binge episodes, heightened anxiety, shame, and drive states are described — but these reflect affective dysregulation rather than pharmacological withdrawal.',
+      prominent:[1,2,3,4,5,7,9],
+      note:'Binge Eating Disorder was formally recognized in DSM-5 (2013) having previously appeared only as a research criterion. It is the most prevalent eating disorder globally and is distinct from bulimia nervosa by the absence of compensatory behaviors. It shares significant neurobiological overlap with behavioral addiction and is increasingly framed in addiction neuroscience terms, though this remains contested.' },
+      refs:[
+    {authors:'Hudson JI et al.', year:2007, title:'The prevalence and correlates of eating disorders in the National Comorbidity Survey Replication', journal:'Biological Psychiatry'},
+    {authors:'Grilo CM', year:2017, title:'Binge eating disorder: An overview', journal:'Psychiatric Times'},
+    {authors:'Hilbert A et al.', year:2019, title:'Psychotherapy for binge eating disorder: A systematic review', journal:'Psychological Medicine'},
+    {authors:'Brownley KA et al.', year:2016, title:'Binge-eating disorder in adults: A systematic review and meta-analysis', journal:'Annals of Internal Medicine'},
+    {authors:'Tanofsky-Kraff M & Yanovski SZ', year:2004, title:'Eating disorder or disordered eating? Non-normative eating patterns in obese individuals', journal:'Obesity Research'}
+  ],
+  description:`<p>Binge Eating Disorder (BED) is characterized by recurrent episodes of eating large amounts of food in a discrete period, accompanied by a sense of loss of control. DSM-5 formal recognition in 2013 codified what had previously been a research diagnosis. BED is the most prevalent eating disorder globally, affecting approximately 2–3% of the general population, with a marked overrepresentation of individuals with comorbid obesity, depression, and anxiety disorders.</p><p>The neurobiological architecture closely resembles addiction: hyperactivation of mesolimbic reward circuitry during binge episodes, impaired prefrontal inhibitory control producing failure to regulate consumption despite intention to stop, and negative affect as the primary precipitant of binge episodes — paralleling negative reinforcement models of substance use disorder. Neuroimaging studies show reduced striatal D2 receptor density in BED patients, identical to the pattern observed in obesity and substance use disorders. The individual harm is the highest in the Physical column: BED drives severe medical consequences through the downstream effects of binge-associated metabolic disruption, and the psychological harm — pervasive shame, body image disturbance, and social withdrawal — substantially compounds the physical burden.</p>` },
+
+  // ── DISSOCIATIVES (col 6) ──
+
+  { symbol:'Kt', name:'Ketamine', col:3, row:3, severity:3,
+    mechanism:'Non-competitive NMDA antagonism (open-channel block); σ receptor agonism; HCN1 blockade; opioid receptor interaction',
+    metrics:{ dependence:15, harmSelf:28, harmOthers:7, diffQuit:20, estimated:false },
+    dsm:{ category:'Other Hallucinogen Use Disorder', severity:'moderate', severityLabel:'Moderate',
+      withdrawal:false,
+      withdrawalNote:'No formal DSM-5 withdrawal syndrome for ketamine. Psychological craving and dysphoria on cessation are clinically significant but insufficient for DSM-5 withdrawal criteria. The uropathy associated with chronic use is a physical harm independent of withdrawal.',
+      prominent:[1,2,4,7,9,10],
+      note:'Ketamine is classified under Other Hallucinogen Use Disorder in DSM-5. Its simultaneous status as an FDA-approved treatment for depression (esketamine/Spravato) creates unusual clinical ambiguity — the same molecule is both a target of SUD treatment and an approved psychiatric medication.' },
+      refs:[
+    {authors:'Morgan CJ & Curran HV', year:2012, title:'Ketamine use: A review', journal:'Addiction'},
+    {authors:'Dillon P et al.', year:2003, title:'Patterns of use and harms associated with non-medical ketamine use', journal:'Drug and Alcohol Dependence'},
+    {authors:'Morgan CJ et al.', year:2010, title:'Long-term heavy ketamine use is associated with spatial memory impairment and altered hippocampal activation', journal:'Psychopharmacology'},
+    {authors:'Liu Y et al.', year:2016, title:'Ketamine abuse potential and use disorder', journal:'Brain and Behavior'},
+    {authors:'Shahani R et al.', year:2007, title:'Ketamine-associated ulcerative cystitis: A new clinical entity', journal:'Urology'}
+  ],
+  description:`<p>Ketamine is a dissociative anesthetic with a complex pharmacological profile centered on non-competitive NMDA receptor antagonism. Clinically, it spans veterinary anesthesia, emergency analgesia, and — increasingly — treatment-resistant depression, where sub-anesthetic infusions produce rapid antidepressant effects through AMPA receptor-dependent synaptic plasticity and BDNF signaling.</p><p>Psychological dependence develops readily with regular recreational use. Chronic heavy use produces a severe ketamine-induced uropathy — bladder fibrosis that may require cystectomy — as well as white matter abnormalities and frontal executive impairment. The simultaneous therapeutic renaissance and growing recreational harm of ketamine makes it one of the most instructive ambiguous substances in contemporary pharmacology.</p>` },
+
+
+  { symbol:'Cf', name:'Caffeine', col:4, row:1, severity:1,
+    mechanism:'Adenosine receptor antagonism (A₁, A₂A); secondary dopaminergic facilitation',
+    metrics:{ dependence:12, harmSelf:5, harmOthers:2, diffQuit:10, estimated:false },
+    dsm:{ category:'Caffeine-related Disorders', severity:'proposed', severityLabel:'Proposed',
+      withdrawal:true,
+      withdrawalNote:'Caffeine Withdrawal is a recognized DSM-5 diagnosis (F15.93): headache, fatigue, dysphoric mood, irritability, and difficulty concentrating within 24h of cessation, resolving within days.',
+      prominent:[2,4,10,11],
+      note:'Caffeine Use Disorder is listed in DSM-5 as a "Condition for Further Study" — not yet a formal diagnosis. Caffeine Withdrawal, however, is a fully recognized diagnosis. This split reflects ongoing debate about whether caffeine dependence meets the threshold for clinical disorder.' },
+      refs:[
+    {authors:'Juliano LM & Griffiths RR', year:2004, title:'A critical review of caffeine withdrawal: Empirical validation of symptoms and signs, incidence, severity, and associated features', journal:'Psychopharmacology'},
+    {authors:'Meredith SE et al.', year:2013, title:'Caffeine use disorder: A comprehensive review and research agenda', journal:'Journal of Caffeine Research'},
+    {authors:'Nehlig A', year:1999, title:'Are we dependent upon coffee and caffeine? A review on human and animal data', journal:'Neuroscience & Biobehavioral Reviews'},
+    {authors:'Griffiths RR et al.', year:1990, title:'Low-dose caffeine discrimination in humans', journal:'Journal of Pharmacology and Experimental Therapeutics'},
+    {authors:'Dews PB et al.', year:2002, title:'The risk of caffeine use: A review', journal:'Food and Chemical Toxicology'}
+  ],
+  description:`<p>Caffeine is the world's most widely consumed psychoactive substance. Its primary mechanism is competitive antagonism at adenosine receptors, particularly A₁ and A₂A subtypes, which normally promote drowsiness and tonically inhibit dopamine release. By blocking adenosine, caffeine indirectly facilitates dopaminergic signaling in the striatum, producing its characteristic alerting and mildly reinforcing effects.</p><p>Physical dependence develops reliably with daily use. A withdrawal syndrome — headache, fatigue, difficulty concentrating, and irritability — emerges within 12–24 hours of abstinence and resolves within days. Despite its pharmacological dependence potential, caffeine's societal harm is minimal; moderate consumption is associated with neutral to modestly positive long-term health outcomes in most epidemiological literature.</p>` },
+
+  { symbol:'Ni', name:'Nicotine', col:4, row:4, severity:4,
+    mechanism:'Nicotinic acetylcholine receptor (nAChR) agonism → mesolimbic dopamine release',
+    metrics:{ dependence:70, harmSelf:38, harmOthers:18, diffQuit:72, estimated:false },
+    dsm:{ category:'Tobacco Use Disorder', severity:'severe', severityLabel:'Severe',
+      withdrawal:true,
+      withdrawalNote:'Tobacco Withdrawal (F17.203): irritability, anxiety, difficulty concentrating, restlessness, depressed mood, insomnia, and increased appetite. Onset within 24h, peak at 2–3 days, resolves over weeks.',
+      prominent:[1,2,4,9,10,11],
+      note:'Tobacco Use Disorder is among the most prevalent SUDs globally. The majority of daily smokers qualify for severe classification (6+ criteria met). The 2-criterion diagnostic threshold is easily reached, with most treatment-seeking patients meeting 8–10 criteria.' },
+      refs:[
+    {authors:'Anthony JC et al.', year:1994, title:'Comparative epidemiology of dependence on tobacco, alcohol, controlled substances and inhalants', journal:'Experimental and Clinical Psychopharmacology'},
+    {authors:'Lopez-Quintero C et al.', year:2011, title:'Probability and predictors of transition from first use to dependence on nicotine, alcohol, cannabis, and cocaine', journal:'Drug and Alcohol Dependence'},
+    {authors:'Benowitz NL', year:2010, title:'Nicotine addiction', journal:'New England Journal of Medicine'},
+    {authors:'Cahill K et al.', year:2013, title:'Pharmacological interventions for smoking cessation: An overview and network meta-analysis', journal:'Cochrane Database of Systematic Reviews'},
+    {authors:'Doll R et al.', year:2004, title:'Mortality in relation to smoking: 50 years\' observations on male British doctors', journal:'BMJ'}
+  ],
+  description:`<p>Nicotine acts as an agonist at nicotinic acetylcholine receptors (nAChRs), particularly α4β2 and α7 subtypes. Activation of presynaptic nAChRs in the ventral tegmental area drives dopamine release into the nucleus accumbens, establishing potent reinforcement. Chronic exposure leads to receptor upregulation and desensitization, creating a neuroadaptive state in which normal hedonic and attentional function depends on sustained nicotine intake.</p><p>Nicotine itself carries modest acute toxicity. Its profound societal harm derives almost entirely from combustible tobacco delivery, which is responsible for one of the leading causes of preventable death globally. The striking dissociation between the pharmacology of the addictive molecule and the catastrophic harm of its dominant delivery vehicle makes nicotine an instructive edge case in addiction science.</p>` },
+
+  { symbol:'Md', name:'MDMA (Ecstasy)', col:4, row:2, severity:2,
+    mechanism:'Reverse transport of serotonin, dopamine, norepinephrine; oxytocin release; VMAT-2 displacement',
+    metrics:{ dependence:10, harmSelf:15, harmOthers:4, diffQuit:10, estimated:false },
+    scoreNote:'* Nutt score of 9 reflects population-level harm under typical occasional recreational use patterns. It understates pharmacological risk: MDMA carries documented serotonergic axonal toxicity with heavy use, acute dangers (hyperthermia, hyponatraemia, serotonin syndrome), and a dependence profile that most clinicians regard as more significant than caffeine. This card has been placed above caffeine accordingly.',
+    dsm:{ category:'Other Stimulant Use Disorder', severity:'moderate', severityLabel:'Moderate',
+      withdrawal:false,
+      withdrawalNote:'No formal DSM-5 withdrawal syndrome. Post-use dysphoria ("comedown") is well-documented but does not meet DSM-5 withdrawal criteria; it reflects serotonin depletion rather than receptor upregulation-driven withdrawal.',
+      prominent:[1,4,7,9,10],
+      note:'MDMA has no dedicated DSM-5 category and is classified under Other Stimulant Use Disorder. Its active clinical investigation as a PTSD adjunct complicates the use-disorder framing — therapeutic and recreational contexts carry substantially different risk profiles.' },
+      refs:[
+    {authors:'Ricaurte GA et al.', year:2002, title:'Severe dopaminergic neurotoxicity in primates after a common recreational dose regimen of MDMA', journal:'Science'},
+    {authors:'Parrott AC', year:2001, title:'Human psychopharmacology of ecstasy (MDMA): A review of 15 years of empirical research', journal:'Human Psychopharmacology'},
+    {authors:'Green AR et al.', year:2003, title:'The pharmacology and clinical pharmacology of 3,4-methylenedioxymethamphetamine (MDMA, "ecstasy")', journal:'Pharmacological Reviews'},
+    {authors:'Nutt DJ et al.', year:2010, title:'Drug harms in the UK: A multicriteria decision analysis', journal:'The Lancet'},
+    {authors:'Kuypers KP et al.', year:2016, title:'Acute effects of MDMA on cognition', journal:'Psychopharmacology'}
+  ],
+  description:`<p>MDMA acts as a substrate for monoamine transporters, inducing reverse transport and releasing large quantities of serotonin, dopamine, and norepinephrine. The magnitude of serotonin release substantially exceeds that of dopamine — a neurochemical distinction from classical stimulants that underlies MDMA's entactogenic and prosocial character rather than the pure drive-and-reward profile of amphetamine or cocaine.</p><p>Repeated heavy use is associated with serotonergic axonal damage, particularly affecting projections from the dorsal raphe to frontal cortex and hippocampus, with lasting consequences for mood regulation, memory, and sleep. Addiction potential is considered moderate relative to dopamine-dominant stimulants. MDMA's active clinical investigation as an adjunct in PTSD therapy — where its prosocial and fear-extinction-facilitating properties may be therapeutically relevant — adds complexity to its risk-benefit profile.</p>` },
+
+  { symbol:'Co', name:'Cocaine', col:4, row:5, severity:5,
+    mechanism:'Monoamine reuptake inhibition (DAT, NET, SERT); local anesthetic Na⁺ channel blockade',
+    metrics:{ dependence:33, harmSelf:40, harmOthers:22, diffQuit:45, estimated:false },
+    dsm:{ category:'Stimulant Use Disorder', severity:'severe', severityLabel:'Severe',
+      withdrawal:true,
+      withdrawalNote:'Stimulant Withdrawal (F15.23): dysphoric mood, fatigue, vivid unpleasant dreams, hypersomnia or insomnia, increased appetite, psychomotor changes. Onset within hours to days after cessation.',
+      prominent:[1,2,3,4,7,9,10,11],
+      note:'DSM-5 groups cocaine under Stimulant Use Disorder alongside amphetamines, with a cocaine specifier. No FDA-approved pharmacotherapy exists for cocaine use disorder, making behavioral treatment the primary modality and relapse rates correspondingly high.' },
+      refs:[
+    {authors:'Anthony JC et al.', year:1994, title:'Comparative epidemiology of dependence on tobacco, alcohol, controlled substances and inhalants', journal:'Experimental and Clinical Psychopharmacology'},
+    {authors:'Koob GF & Volkow ND', year:2010, title:'Neurocircuitry of addiction', journal:'Neuropsychopharmacology'},
+    {authors:'Kreek MJ et al.', year:2005, title:'Genetic influences on impulsivity, risk taking, stress responsivity and vulnerability to drug abuse and addiction', journal:'Nature Neuroscience'},
+    {authors:'Kampman KM', year:2010, title:'What\'s new in the treatment of cocaine addiction?', journal:'Current Psychiatry Reports'},
+    {authors:'Volkow ND et al.', year:1997, title:'Relationship between subjective effects of cocaine and dopamine transporter occupancy', journal:'Nature'}
+  ],
+  description:`<p>Cocaine inhibits the dopamine, norepinephrine, and serotonin transporters, preventing reuptake and prolonging monoaminergic signaling. Its action on the dopamine transporter in the nucleus accumbens is central to acute euphoria and reinforcing properties. The rapid onset and brief duration, particularly when smoked as crack cocaine, create a pharmacokinetic profile strongly associated with compulsive redosing.</p><p>Chronic use produces profound neuroadaptation: downregulation of D2/D3 receptors, diminished prefrontal inhibitory control, and sensitization of stress circuits that generate craving and negative affect during abstinence. Cardiovascular consequences — coronary vasospasm, arrhythmia, aortic dissection, stroke — contribute substantially to morbidity.</p>` },
+
+  { symbol:'Am', name:'Amphetamine', col:4, row:3, severity:3,
+    mechanism:'Monoamine reverse transport; VMAT-2 displacement; reuptake inhibition; MAO substrate',
+    metrics:{ dependence:22, harmSelf:28, harmOthers:18, diffQuit:35, estimated:false },
+    dsm:{ category:'Stimulant Use Disorder', severity:'severe', severityLabel:'Severe',
+      withdrawal:true,
+      withdrawalNote:'Stimulant Withdrawal: dysphoria, fatigue, hypersomnia, and increased appetite. Duration is longer than cocaine withdrawal, reflecting amphetamine\'s longer half-life and greater extent of dopaminergic depletion.',
+      prominent:[1,2,3,4,5,7,9,10,11],
+      note:'DSM-5 specifies that tolerance and withdrawal during prescribed, medically supervised amphetamine use do not automatically count toward SUD criteria — a clinically important distinction given widespread ADHD prescribing.' },
+      refs:[
+    {authors:'Anthony JC et al.', year:1994, title:'Comparative epidemiology of dependence on tobacco, alcohol, controlled substances and inhalants', journal:'Experimental and Clinical Psychopharmacology'},
+    {authors:'Volkow ND et al.', year:2007, title:'Depressed dopamine activity in caudate and preliminary evidence of limbic involvement in adults with attention-deficit/hyperactivity disorder', journal:'Archives of General Psychiatry'},
+    {authors:'Barr AM et al.', year:2006, title:'The need for speed: An update on methamphetamine addiction', journal:'Journal of Psychiatry & Neuroscience'},
+    {authors:'Hyman SE et al.', year:2006, title:'Neural mechanisms of addiction: The role of reward-related learning and memory', journal:'Annual Review of Neuroscience'},
+    {authors:'Berman SM et al.', year:2008, title:'Potential adverse effects of amphetamine treatment on brain and behavior: A review', journal:'Molecular Psychiatry'}
+  ],
+  description:`<p>Amphetamines enter presynaptic terminals via monoamine transporters and displace vesicular dopamine and norepinephrine stores through VMAT-2 inhibition, flooding the synapse via reverse transport. Prescribed formulations are first-line treatments for ADHD, with a comparatively favorable therapeutic profile at low, controlled doses.</p><p>At higher doses or via non-prescribed routes, addiction liability is substantial. Withdrawal after chronic use produces a prolonged dysphoric state marked by profound anhedonia, hypersomnia, and anergia, reflecting depletion and downregulation of mesolimbic dopaminergic systems. The tension between therapeutic utility and high addiction potential makes amphetamines one of the most clinically and ethically complex substances in the pharmacopoeia.</p>` },
+
+  { symbol:'Mx', name:'Methamphetamine', col:4, row:6, severity:6,
+    mechanism:'Potent monoamine reverse transport; MAO inhibition; dopaminergic and serotonergic neurotoxicity',
+    metrics:{ dependence:50, harmSelf:68, harmOthers:35, diffQuit:75, estimated:false },
+    dsm:{ category:'Stimulant Use Disorder', severity:'severe', severityLabel:'Severe',
+      withdrawal:true,
+      withdrawalNote:'Stimulant Withdrawal, often severely protracted with methamphetamine: profound anhedonia, hypersomnia, and dysphoria may persist for weeks to months, reflecting the degree of dopaminergic neurotoxicity and depletion.',
+      prominent:[1,2,3,4,5,6,7,8,9,10,11],
+      note:'Methamphetamine use disorder represents the severe end of the Stimulant Use Disorder spectrum. All 11 DSM-5 criteria are commonly met in heavy, chronic users. The neurotoxic profile adds a dimension of irreversible harm not captured by criterion counting alone.' },
+      refs:[
+    {authors:'Volkow ND et al.', year:2001, title:'Association of dopamine transporter reduction with psychomotor impairment in methamphetamine abusers', journal:'American Journal of Psychiatry'},
+    {authors:'Barr AM et al.', year:2006, title:'The need for speed: An update on methamphetamine addiction', journal:'Journal of Psychiatry & Neuroscience'},
+    {authors:'Rawson RA et al.', year:2002, title:'A comparison of contingency management and cognitive-behavioral approaches during methadone maintenance treatment for cocaine dependence', journal:'Archives of General Psychiatry'},
+    {authors:'Lee NK & Rawson RA', year:2008, title:'A systematic review of cognitive and behavioural therapies for methamphetamine dependence', journal:'Drug and Alcohol Review'},
+    {authors:'Srisurapanont M et al.', year:2007, title:'Psychotic symptoms in methamphetamine psychosis and schizophrenia: A comparative study', journal:'International Journal of Neuropsychopharmacology'}
+  ],
+  description:`<p>Methamphetamine shares the core mechanism of amphetamine but with greater lipophilicity, higher CNS penetration, longer duration, and substantially higher potency. Chronic use produces pronounced neurotoxicity: dopaminergic terminals in the striatum and serotonergic terminals in the cortex are selectively damaged — changes detectable by neuroimaging as reduced dopamine transporter density — that persist for years following cessation.</p><p>The neuropsychiatric consequences include a high-fidelity stimulant psychosis indistinguishable from paranoid schizophrenia during acute intoxication, profound anhedonia during withdrawal, and sustained cognitive impairment in executive and mnemonic domains. The societal burden is severe: methamphetamine is associated with high rates of violence, infectious disease, incarceration, and community devastation. No approved pharmacotherapy exists.</p>` },
+
+
+  { symbol:'Cd', name:'Codeine', col:6, row:3, severity:3,
+    mechanism:'Prodrug; hepatic CYP2D6 conversion to morphine; μ-opioid receptor agonism',
+    metrics:{ dependence:15, harmSelf:22, harmOthers:8, diffQuit:25, estimated:true },
+    dsm:{ category:'Opioid Use Disorder', severity:'moderate', severityLabel:'Moderate',
+      withdrawal:true,
+      withdrawalNote:'Opioid Withdrawal (F11.23): dysphoric mood, nausea, vomiting, muscle aches, lacrimation, rhinorrhea, pupillary dilation, piloerection, diaphoresis, diarrhea, yawning, insomnia. Onset 6–24h after last dose.',
+      prominent:[1,2,4,9,10,11],
+      note:'DSM-5 makes no potency distinctions within Opioid Use Disorder — the criteria and diagnostic framework for codeine dependence are identical to those for heroin or fentanyl.' },
+      refs:[
+    {authors:'Fischer B et al.', year:2014, title:'Non-medical use, abuse and dependence on codeine: An updated and annotated review of the scientific evidence', journal:'Drug and Alcohol Dependence'},
+    {authors:'Wazaify M et al.', year:2005, title:'Societal problems with over-the-counter drugs in the United Kingdom', journal:'Addiction'},
+    {authors:'Dyer KR et al.', year:2004, title:'Clinical presentation of codeine dependence', journal:'Drug and Alcohol Review'},
+    {authors:'Nielsen S et al.', year:2015, title:'Codeine combined with paracetamol: A review of effectiveness and harms', journal:'European Journal of Pain'},
+    {authors:'Sheridan J & Butler R', year:2010, title:'"It\'s just part of the culture" — an exploration of over-the-counter medicine misuse', journal:'Journal of Medical Ethics'}
+  ],
+  description:`<p>Codeine is a naturally occurring opium alkaloid that exerts its effects primarily through CYP2D6-mediated conversion to morphine. This metabolic dependence introduces significant inter-individual variability: poor metabolizers experience minimal opioid effect, while ultra-rapid metabolizers may accumulate dangerously high morphine concentrations — a concern where fatalities have occurred in pediatric populations.</p><p>Despite relatively modest potency, codeine's historical over-the-counter availability has contributed to dependence across diverse populations. The cultural misuse of promethazine-codeine cough syrup has been associated with youth substance use and cardiac complications. The opioid use disorder that develops with chronic codeine use is mechanistically identical to that of more potent opioids.</p>` },
+
+  { symbol:'Tr', name:'Tramadol', col:6, row:2, severity:2,
+    mechanism:'Weak μ-opioid agonism; serotonin and norepinephrine reuptake inhibition; CYP2D6-mediated activation',
+    metrics:{ dependence:15, harmSelf:25, harmOthers:10, diffQuit:32, estimated:true },
+    dsm:{ category:'Opioid Use Disorder', severity:'moderate', severityLabel:'Moderate',
+      withdrawal:true,
+      withdrawalNote:'Opioid Withdrawal plus atypical features from serotonergic component: sensory disturbances (paresthesia), anxiety, dysphoria, and vivid dreams not typical of classical opioid withdrawal.',
+      prominent:[1,2,4,9,10,11],
+      note:'Tramadol\'s dual pharmacology can produce withdrawal symptoms extending beyond standard DSM-5 Opioid Withdrawal criteria. The mismatch between perceived safety and actual dependence liability is itself a documented clinical hazard.' },
+      refs:[
+    {authors:'Radbruch L et al.', year:2013, title:'Tramadol use: Is it a risk for dependence?', journal:'Pain Management'},
+    {authors:'Miotto K et al.', year:2017, title:'Trends in tramadol: Pharmacology, metabolism, and misuse', journal:'Anesthesia & Analgesia'},
+    {authors:'Nakhaee N et al.', year:2008, title:'Estimating the prevalence of opioid use disorder in Iran using the network scale-up method', journal:'Addiction'},
+    {authors:'Gong L et al.', year:2014, title:'Tramadol', journal:'Pharmacogenomics and Genomics'},
+    {authors:'Subedi M et al.', year:2017, title:'Tramadol: A pharmacological description', journal:'Open Journal of Pharmacology and Pharmacotherapeutics'}
+  ],
+  description:`<p>Tramadol is a synthetic opioid with dual pharmacology: weak μ-opioid receptor agonism combined with inhibition of serotonin and norepinephrine reuptake. Originally marketed as a low-risk alternative to classical opioids, this reputation has been substantially revised. Physical dependence and a clinically meaningful withdrawal syndrome develop with sustained use, the latter exhibiting atypical features that reflect its serotonergic component.</p><p>Tramadol lowers seizure threshold and interacts dangerously with serotonergic drugs to produce serotonin syndrome. The perception of safety drove prescription volumes that now rival more potent opioids in some countries — a pattern in which substances believed safe are more freely prescribed and more widely misused.</p>` },
+
+  { symbol:'Ox', name:'Oxycodone (OxyContin)', col:6, row:4, severity:4,
+    mechanism:'Semi-synthetic μ-opioid agonism; high oral bioavailability; κ and δ receptor activity',
+    metrics:{ dependence:35, harmSelf:55, harmOthers:35, diffQuit:58, estimated:false },
+    dsm:{ category:'Opioid Use Disorder', severity:'severe', severityLabel:'Severe',
+      withdrawal:true,
+      withdrawalNote:'Opioid Withdrawal, typically onset 8–24h after last dose. Extended-release formulations can delay onset. The severity of withdrawal is a primary driver of continued use and relapse in opioid use disorder.',
+      prominent:[1,2,3,4,5,7,8,9,10,11],
+      note:'DSM-5 permits the specifier "on maintenance therapy" for individuals receiving methadone or buprenorphine — a critical clinical distinction for treatment planning. The opioid epidemic context means oxycodone use disorder is among the most clinically and policy-relevant SUD diagnoses.' },
+      refs:[
+    {authors:'Vowles KE et al.', year:2015, title:'Rates of opioid misuse, abuse, and addiction in chronic pain: A systematic review and data synthesis', journal:'Pain'},
+    {authors:'Cicero TJ et al.', year:2014, title:'The changing face of heroin use in the United States', journal:'JAMA Psychiatry'},
+    {authors:'Van Zee A', year:2009, title:'The promotion and marketing of OxyContin: Commercial triumph, public health tragedy', journal:'American Journal of Public Health'},
+    {authors:'Dasgupta N et al.', year:2006, title:'Epidemiology of prescription opioid abuse', journal:'Pharmacoepidemiology and Drug Safety'},
+    {authors:'Calcaterra S et al.', year:2013, title:'National trends in pharmaceutical opioid related overdose deaths compared to other substance related overdose deaths: 1999–2009', journal:'Drug and Alcohol Dependence'}
+  ],
+  description:`<p>Oxycodone is a semi-synthetic opioid with approximately 1.5 times the potency of oral morphine. The introduction of OxyContin with misleading claims about addiction risk is now recognized as a central catalyst of the North American opioid crisis. When the extended-release mechanism was defeated by crushing, OxyContin became a high-bioavailability, rapid-onset opioid available on a massive, marketed scale.</p><p>The cascading consequences — including transitions to heroin and illicit fentanyl when prescription supply was disrupted — have produced mortality at a scale with few precedents in the history of pharmaceutical harm. The societal harm score reflects not only pharmacology but a specific history of corporate and regulatory failure.</p>` },
+
+  { symbol:'Hr', name:'Heroin', col:6, row:5, severity:5,
+    mechanism:'Diacetylmorphine prodrug; rapid CNS penetration; high-affinity μ-opioid agonism; endorphin system suppression',
+    metrics:{ dependence:50, harmSelf:72, harmOthers:40, diffQuit:72, estimated:false },
+    dsm:{ category:'Opioid Use Disorder', severity:'severe', severityLabel:'Severe',
+      withdrawal:true,
+      withdrawalNote:'Opioid Withdrawal: onset 6–12h post-cessation, peaks 36–72h, resolves over 5–7 days. Protracted abstinence syndrome (dysphoria, sleep disturbance, craving) may persist for months, driving late relapse.',
+      prominent:[1,2,3,4,5,6,7,8,9,10,11],
+      note:'Heroin use disorder is the prototypical severe opioid use disorder. DSM-5 recognizes opioid-induced disorders across mood, psychosis, sleep, and sexual function domains. The majority of treatment-seeking heroin users qualify for severe classification with most or all 11 criteria met.' },
+      refs:[
+    {authors:'Anthony JC et al.', year:1994, title:'Comparative epidemiology of dependence on tobacco, alcohol, controlled substances and inhalants', journal:'Experimental and Clinical Psychopharmacology'},
+    {authors:'Strang J et al.', year:2012, title:'Heroin on trial: Systematic review and left-censored meta-analysis of randomised trials of diamorphine-prescribing as treatment for refractory heroin addiction', journal:'British Journal of Psychiatry'},
+    {authors:'Hser YI et al.', year:2001, title:'A 33-year follow-up of narcotics addicts', journal:'Archives of General Psychiatry'},
+    {authors:'Kreek MJ et al.', year:2005, title:'Genetic influences on impulsivity, risk taking, stress responsivity and vulnerability to drug abuse and addiction', journal:'Nature Neuroscience'},
+    {authors:'Koob GF & Volkow ND', year:2010, title:'Neurocircuitry of addiction', journal:'Neuropsychopharmacology'}
+  ],
+  description:`<p>Heroin (diacetylmorphine) is synthesized from morphine via acetylation, dramatically increasing lipophilicity and rate of blood-brain barrier penetration. The rapid onset of intense euphoria following intravenous administration is pharmacokinetically determined and central to its extreme addiction liability — faster onset drugs are more strongly reinforcing, and heroin represents an extreme on this continuum.</p><p>Chronic use suppresses the endogenous opioid system, creating a neurobiological state in which withdrawal is experienced as an inversion of normal hedonic tone — the absence of the drug is experienced as profound aversiveness. In contemporary illicit supply, heroin is frequently displaced by fentanyl, transforming each use into a substantially higher-stakes pharmacological event.</p>` },
+
+  { symbol:'Fn', name:'Fentanyl', col:6, row:6, severity:6,
+    mechanism:'Potent synthetic μ-opioid agonism; ~100× morphine potency; extreme respiratory depression liability',
+    metrics:{ dependence:55, harmSelf:78, harmOthers:45, diffQuit:75, estimated:true },
+    dsm:{ category:'Opioid Use Disorder', severity:'severe', severityLabel:'Severe',
+      withdrawal:true,
+      withdrawalNote:'Opioid Withdrawal with atypical kinetics: rapid onset and high severity reflecting extreme receptor affinity. Standard methadone or buprenorphine induction protocols may require modification for fentanyl-dependent individuals.',
+      prominent:[1,2,3,4,5,7,8,9,10,11],
+      note:'The dominance of illicit fentanyl in the drug supply means many individuals who self-identify as heroin-dependent are pharmacologically fentanyl-dependent — a clinically significant difference not yet fully captured in DSM-5 criteria or treatment guidelines.' },
+      refs:[
+    {authors:'Cicero TJ et al.', year:2017, title:'The changing face of heroin use in the United States: A retrospective analysis of the past 50 years', journal:'JAMA Psychiatry'},
+    {authors:'Hedegaard H et al.', year:2021, title:'Drug overdose deaths in the United States, 1999–2020', journal:'NCHS Data Brief'},
+    {authors:'Pardo B et al.', year:2019, title:'The future of fentanyl and other synthetic opioids', journal:'RAND Corporation'},
+    {authors:'Rudd RA et al.', year:2016, title:'Increases in drug and opioid-involved overdose deaths — United States, 2010–2015', journal:'MMWR Morbidity and Mortality Weekly Report'},
+    {authors:'Stanley TH', year:1992, title:'The history and development of the fentanyl series', journal:'Journal of Pain and Symptom Management'}
+  ],
+  description:`<p>Fentanyl is a fully synthetic phenylpiperidine opioid with approximately 100 times the potency of morphine and a uniquely rapid onset — properties that make it a valuable clinical analgesic and an extraordinarily dangerous substance outside clinical control. Illicitly, fentanyl has become the dominant driver of opioid overdose mortality in North America, increasingly found in heroin, counterfeit pills, and even stimulant supplies.</p><p>Its potency means that analytically invisible quantities constitute a lethal dose. The transition of illicit opioid supply toward fentanyl and its analogs represents an ongoing, accelerating crisis. The harm profile is deeply embedded in drug policy, supply chain, and the structural vulnerabilities of people who use drugs.</p>` },
+
+
+  { symbol:'Zd', name:'Ambien / Z-Drugs', col:5, row:2, severity:2,
+    mechanism:'GABA-A BZ₁ (ω₁) subtype-selective positive allosteric modulation',
+    metrics:{ dependence:15, harmSelf:22, harmOthers:8, diffQuit:28, estimated:true },
+    dsm:{ category:'Sedative, Hypnotic, or Anxiolytic Use Disorder', severity:'moderate', severityLabel:'Moderate',
+      withdrawal:true,
+      withdrawalNote:'Sedative/Hypnotic Withdrawal: rebound insomnia, anxiety, tremor, sweating, and in severe cases, seizures. Onset typically 1–3 days after cessation of short-acting formulations.',
+      prominent:[1,2,4,9,10,11],
+      note:'Z-drugs fall under Sedative, Hypnotic, or Anxiolytic Use Disorder in DSM-5. The gap between marketed safety profile and actual dependence liability is particularly evident here — many patients develop SUD criteria while under routine medical care for insomnia.' },
+      refs:[
+    {authors:'Hajak G et al.', year:2003, title:'Abuse and dependence potential for the non-benzodiazepine hypnotics zolpidem and zopiclone', journal:'Addiction'},
+    {authors:'Victorri-Vigneau C et al.', year:2007, title:'Evidence of zolpidem abuse and dependence: Results of the French Centre for Evaluation and Information on Pharmacodependence (CEIP) network survey', journal:'British Journal of Clinical Pharmacology'},
+    {authors:'Lader M', year:2008, title:'Effectiveness of benzodiazepines: Do they work after all?', journal:'Expert Review of Neurotherapeutics'},
+    {authors:'Huedo-Medina TB et al.', year:2012, title:'Effectiveness of non-benzodiazepine hypnotics in treatment of adult insomnia', journal:'BMJ'},
+    {authors:'Dündar Y et al.', year:2004, title:'Newer hypnotic drugs for the short-term management of insomnia: A systematic review and economic evaluation', journal:'Health Technology Assessment'}
+  ],
+  description:`<p>The "Z-drugs" — zolpidem, zaleplon, and eszopiclone — were developed as selective non-benzodiazepine hypnotics with preferential affinity for the GABA-A ω₁ receptor subtype. The theoretical basis was that this selectivity would offer sleep benefits with reduced addiction liability. In clinical practice, this distinction has proven considerably less meaningful than advertised.</p><p>Physical dependence, rebound insomnia on discontinuation, and tolerance are well-established adverse effects. Complex sleep behaviors — sleepwalking, sleep-eating, sleep-driving with no recall — are documented, particularly with zolpidem at supratherapeutic doses. The gap between marketed image and actual dependence profile is a recurring pattern in the history of "safer" sedative development.</p>` },
+
+  { symbol:'Bz', name:'Xanax / Benzodiazepines', col:5, row:3, severity:3,
+    mechanism:'GABA-A positive allosteric modulation at the benzodiazepine binding site; broad α-subunit activity',
+    metrics:{ dependence:28, harmSelf:35, harmOthers:12, diffQuit:68, estimated:false },
+    dsm:{ category:'Sedative, Hypnotic, or Anxiolytic Use Disorder', severity:'severe', severityLabel:'Severe',
+      withdrawal:true,
+      withdrawalNote:'Sedative/Hypnotic Withdrawal (F13.239): one of the most medically dangerous — anxiety, tremor, diaphoresis, perceptual disturbances, and potentially fatal seizures. Requires supervised medical management and slow taper.',
+      prominent:[1,2,3,4,5,7,9,10,11],
+      note:'DSM-5 notes that tolerance and withdrawal in the context of prescribed, medically supervised use do not automatically constitute SUD — clinician judgment is required to assess loss of control and functional impairment. This is clinically important given very high rates of long-term prescribed benzodiazepine use.' },
+      refs:[
+    {authors:'Lader M et al.', year:2009, title:'Withdrawing benzodiazepines in primary care', journal:'CNS Drugs'},
+    {authors:'Ashton H', year:2005, title:'The diagnosis and management of benzodiazepine dependence', journal:'Current Opinion in Psychiatry'},
+    {authors:'Brett J & Murnion B', year:2015, title:'Management of benzodiazepine misuse and dependence', journal:'Australian Prescriber'},
+    {authors:'Pétursson H', year:1994, title:'The benzodiazepine withdrawal syndrome', journal:'Addiction'},
+    {authors:'Lader M', year:2011, title:'Benzodiazepines revisited — will we ever learn?', journal:'Addiction'}
+  ],
+  description:`<p>Benzodiazepines enhance chloride conductance through GABA-A receptors by binding at the α/γ₂ subunit interface, potentiating inhibitory neurotransmission broadly. Tolerance to hypnotic effects develops within days; physical dependence is established within weeks of regular use. Benzodiazepine withdrawal is medically dangerous and potentially fatal — the reversal of chronic GABAergic potentiation exposes NMDA-dependent excitatory circuits whose chronic suppression had produced compensatory upregulation.</p><p>Abrupt discontinuation after prolonged use requires supervised medical management. The class is heavily prescribed globally, with substantial evidence of long-term use far exceeding clinical guidelines. Their role as co-intoxicant in opioid overdose — where combined respiratory depression is synergistic — contributes substantially to mortality.</p>` },
+
+  { symbol:'Al', name:'Alcohol', col:5, row:6, severity:6,
+    mechanism:'GABA-A potentiation; NMDA antagonism; endogenous opioid release; dopaminergic facilitation; multi-target CNS depressant',
+    metrics:{ dependence:32, harmSelf:55, harmOthers:75, diffQuit:55, estimated:false },
+    dsm:{ category:'Alcohol Use Disorder', severity:'severe', severityLabel:'Severe',
+      withdrawal:true,
+      withdrawalNote:'Alcohol Withdrawal (F10.239): one of the most medically serious syndromes — tremor, autonomic hyperactivity, seizures (onset 12–48h), and delirium tremens (onset 48–72h). Can be fatal without medical management.',
+      prominent:[1,2,3,4,5,6,7,8,9,10,11],
+      note:'Alcohol Use Disorder has its own dedicated DSM-5 chapter and is among the most prevalent psychiatric diagnoses globally. The criterion of craving was added in DSM-5 (absent from DSM-IV), reflecting advances in understanding the neuroscience of alcohol dependence.' },
+      refs:[
+    {authors:'Nutt DJ et al.', year:2010, title:'Drug harms in the UK: A multicriteria decision analysis', journal:'The Lancet'},
+    {authors:'Grant BF et al.', year:2015, title:'Epidemiology of DSM-5 alcohol use disorder', journal:'JAMA Psychiatry'},
+    {authors:'Rehm J et al.', year:2009, title:'Global burden of disease and injury and economic cost attributable to alcohol use and alcohol-use disorders', journal:'The Lancet'},
+    {authors:'Koob GF & Volkow ND', year:2010, title:'Neurocircuitry of addiction', journal:'Neuropsychopharmacology'},
+    {authors:'Anton RF et al.', year:2006, title:'Combined pharmacotherapies and behavioral interventions for alcohol dependence: The COMBINE study', journal:'JAMA'}
+  ],
+  description:`<p>Ethanol is a small, membrane-permeant molecule with broad CNS activity — potentiating GABA-A receptor function, inhibiting NMDA glutamate receptors, stimulating endogenous opioid peptide release, and indirectly facilitating mesolimbic dopamine signaling. This multi-target pharmacology underlies the complex phenomenology of intoxication across a dose-dependent continuum.</p><p>Alcohol withdrawal is among the most medically dangerous of any substance, with risk of life-threatening seizures and delirium tremens. Societal harm is, by any aggregate metric, the highest of any psychoactive substance — encompassing motor vehicle fatalities, violence, fetal alcohol spectrum disorders, cancers, and liver disease — with a magnitude rendered obscure by its legal status and deep cultural normalization.</p>` },
+
+
+
+  { symbol:'Ca', name:'Cannabis', col:2, row:3, severity:3,
+    mechanism:'Δ⁹-THC partial CB₁ agonism; presynaptic modulation of GABA and glutamate; endocannabinoid system disruption; dopaminergic facilitation; potency-dependent harm gradient from plant to synthetic',
+    metrics:{ dependence:22, harmSelf:25, harmOthers:15, diffQuit:30, estimated:false },
+    dsm:{ category:'Cannabis Use Disorder (DSM-5, 304.30)', severity:'moderate', severityLabel:'Moderate',
+      withdrawal:true,
+      withdrawalNote:'Cannabis Withdrawal (F12.288) was added as a formal DSM-5 diagnosis in 2013 (absent from DSM-IV): irritability, anxiety, sleep disturbance, decreased appetite, restlessness, and depressed mood. Onset 1–3 days after cessation, resolves within 1–2 weeks. Withdrawal severity scales with product potency.',
+      prominent:[1,2,4,7,9,10,11],
+      note:'Cannabis Use Disorder has its own DSM-5 chapter. The rapidly shifting legal landscape, dramatic rise in product potency, and the emergence of synthetic cannabinoids have substantially outpaced the diagnostic framework. Harm varies enormously across the cannabis spectrum and cannot be adequately captured by a single severity rating.' },
+      refs:[
+    {authors:'Anthony JC et al.', year:1994, title:'Comparative epidemiology of dependence on tobacco, alcohol, controlled substances and inhalants', journal:'Experimental and Clinical Psychopharmacology'},
+    {authors:'Hall W & Degenhardt L', year:2009, title:'Adverse health effects of non-medical cannabis use', journal:'The Lancet'},
+    {authors:'Volkow ND et al.', year:2014, title:'Adverse health effects of marijuana use', journal:'New England Journal of Medicine'},
+    {authors:'Budney AJ et al.', year:2004, title:'Review of the validity and significance of cannabis withdrawal syndrome', journal:'American Journal of Psychiatry'},
+    {authors:'Hasin DS et al.', year:2016, title:'DSM-5 criteria for substance use disorders: Recommendations and rationale', journal:'American Journal of Psychiatry'}
+  ],
+  description:`<p>Cannabis spans the widest harm gradient of any entry in this table — from traditional low-potency plant material through high-THC concentrates to fully synthetic cannabinoid receptor agonists — and its placement here reflects the traditional preparation most represented in the epidemiological literature. Δ⁹-THC acts as a partial CB₁ agonist, the most abundant GPCR in the brain, functioning as a retrograde neuromodulator that suppresses presynaptic GABA and glutamate release. Cannabis Use Disorder affects approximately 9% of individuals who ever use cannabis and up to 50% of daily users. Heavy adolescent use is associated with increased risk of psychotic disorder, particularly in individuals with the COMT Val158Met polymorphism — one of the most replicated gene-by-environment interactions in addiction psychiatry.</p><p>The potency shift in contemporary cannabis markets substantially changes the harm profile. High-THC concentrates (60–90% THC) produce more rapid receptor downregulation, more severe withdrawal, higher rates of Cannabinoid Hyperemesis Syndrome, and stronger associations with cannabis-induced psychosis than traditional plant material. Synthetic cannabinoids — structurally diverse full CB₁ agonists with no ceiling effect — represent a categorically different risk tier: their high intrinsic efficacy produces complete receptor activation with no natural limit, driving seizures, acute psychosis, myocardial infarction, and death at rates far exceeding natural cannabis. The continuously shifting chemical landscape of synthetic cannabinoid analogs renders toxicological screening and clinical management essentially impossible in real time. The Nutt score shown reflects traditional cannabis; synthetic cannabinoids would score approximately 50 on the same scale.</p><p>Cannabis sits between the behavioral and chemical addiction columns deliberately. Its dependence profile is intermediate: withdrawal is recognized in DSM-5 but is generally milder than classical substance withdrawal syndromes; psychological dependence predominates over physical dependence; and the dopaminergic reinforcement mechanism, while real, is less direct and potent than that of the stimulants or opioids to its right. The endocannabinoid system is itself a neuromodulatory system rather than a classical reward pathway, giving cannabis a fundamentally different neurobiological character from the substances in the adjacent chemical columns.</p>` },
+
+    // ── SOCIAL & FINANCIAL BEHAVIORAL (col 1) ──
+  { symbol:'Bw', name:'Binge Watching', col:0, row:1, severity:1, behavioral:true,
+    mechanism:'Passive dopaminergic reward from narrative novelty; low-effort variable ratio content delivery (autoplay, episodic cliffhangers); algorithmic optimization for maximum engagement time',
+    metrics:{ dependence:8, harmSelf:8, harmOthers:3, diffQuit:5, estimated:true },
+    recognition:'No formal DSM-5 or ICD-11 category',
+    recognitionShort:'',
+    recognitionNote:'Entertainment addiction (binge-watching, passive media consumption) has no diagnostic recognition anywhere. It is the least-studied entry in this column and the most contested as a genuine addiction — the harm profile is primarily one of time displacement rather than pharmacological or severe psychological harm.',
+    dsm:{ category:'No formal DSM-5 or ICD-11 category', severity:'mild', severityLabel:'Mild',
+      withdrawal:false,
+      withdrawalNote:'No documented withdrawal syndrome. Dysphoria and restlessness when unable to access streaming content are reported anecdotally but have no clinical documentation.',
+      prominent:[1,2,4,7,9],
+      note:'The primary argument for including entertainment as an addictive behavior is the deliberate deployment of variable ratio reinforcement by streaming platforms — autoplay, episodic cliffhangers, algorithmic recommendation — which exploit the same psychological vulnerabilities as slot machines. The counterargument is that the harm profile (primarily time displacement) does not reach the severity threshold for clinical disorder.' },
+      refs:[
+    {authors:'Flayelle M et al.', year:2017, title:'Toward a qualitative understanding of binge-watching behaviors: A focus group approach', journal:'Journal of Behavioral Addictions'},
+    {authors:'Exelmans L & Van den Bulck J', year:2017, title:'Binge viewing, sleep, and the role of pre-sleep arousal', journal:'Journal of Clinical Sleep Medicine'},
+    {authors:'Flayelle M et al.', year:2019, title:'Time for a plot twist: Beyond confirmatory approaches to binge-watching research', journal:'Psychology of Popular Media Culture'},
+    {authors:'Starosta JA & Izydorczyk B', year:2020, title:'Understanding the phenomenon of binge-watching — a systematic review', journal:'International Journal of Environmental Research and Public Health'},
+    {authors:'Ahmed AA', year:2017, title:'New era of TV-watching behavior: Binge watching and its psychological effects', journal:'Media Watch'}
+  ],
+  description:`<p>Entertainment addiction describes compulsive engagement with streaming media, television, and passive digital content consumption that results in clinically meaningful time displacement, sleep disruption, and functional impairment. It is the least well-evidenced entry in this section and the most vulnerable to the "pathologizing normal behavior" critique — the majority of heavy media consumers do not experience meaningful impairment. The case for its inclusion rests not on individual clinical presentations but on deliberate platform design.</p><p>Streaming platforms deploy the same variable ratio reinforcement mechanisms as gambling: autoplay removes the deliberate decision to continue watching, episodic cliffhangers create unresolved tension that drives the next episode, and recommendation algorithms are optimized not for user wellbeing but for engagement time. The "binge-watching" behavioral pattern — consuming multiple episodes in a single session to the exclusion of sleep, exercise, and social interaction — follows the escalation and loss-of-control pattern seen in other behavioral addictions. The harm is real but diffuse: primarily displaced time, disrupted sleep, and reduced physical activity, rather than the acute psychological or financial harm seen in higher-severity entries in this column.</p>` },
+
+  { symbol:'In', name:'Internet', col:0, row:2, severity:2, behavioral:true,
+    mechanism:'Generalized novelty-seeking dopaminergic reward; compulsive checking driven by variable ratio notification schedules; FOMO-driven anxiety relief; infinite scroll and content refresh as intermittent reinforcement',
+    metrics:{ dependence:15, harmSelf:20, harmOthers:10, diffQuit:22, estimated:true },
+    recognition:'No formal DSM-5 or ICD-11 category',
+    recognitionShort:'',
+    recognitionNote:'Internet Use Disorder (IUD) or Internet Addiction Disorder (IAD) has no formal diagnostic status in DSM-5 or ICD-11 — it was considered but not included in either. It is distinct from Gaming Disorder and Social Media addiction in describing compulsive connectivity and switching behavior not reducible to any specific application.',
+    dsm:{ category:'No formal DSM-5 or ICD-11 category', severity:'mild', severityLabel:'Mild',
+      withdrawal:false,
+      withdrawalNote:'Anxiety, restlessness, and dysphoria during forced internet disconnection are well-documented in experimental studies but do not constitute a recognized withdrawal syndrome.',
+      prominent:[1,2,3,4,7,9,10],
+      note:'The generalized internet addiction concept is contested — some researchers argue it is better understood as a compulsive behavior pattern driven by anxiety or depression (internet use as avoidant coping) rather than a primary addiction. Others argue that the compulsive connectivity pattern, regardless of specific application, constitutes a meaningful clinical entity. Both views have supporting evidence.' },
+      refs:[
+    {authors:'Young KS', year:1998, title:'Internet addiction: The emergence of a new clinical disorder', journal:'CyberPsychology & Behavior'},
+    {authors:'Kuss DJ & Griffiths MD', year:2011, title:'Online social networking and addiction — a review of the psychological literature', journal:'International Journal of Environmental Research and Public Health'},
+    {authors:'Brand M et al.', year:2016, title:'Prefrontal control and internet addiction: A theoretical model and review of neuropsychological and neuroimaging findings', journal:'Frontiers in Human Neuroscience'},
+    {authors:'Spada MM', year:2014, title:'An overview of problematic internet use', journal:'Addictive Behaviors'},
+    {authors:'Andreassen CS et al.', year:2016, title:'The relationship between addictive use of social media and video games and symptoms of psychiatric disorders', journal:'Psychology of Addictive Behaviors'}
+  ],
+  description:`<p>Generalized Internet Use Disorder describes compulsive online connectivity that cannot be attributed to any specific application — not gaming, not social media, not shopping — but represents a compulsive relationship with the internet as an environment. The behavioral signature is constant checking, rapid switching between applications, inability to tolerate disconnection, and anxiety when offline that is not explained by any specific content craving. It is the digital equivalent of an inability to be alone with one's thoughts.</p><p>The neurobiological model involves generalized novelty-seeking dopaminergic reward — the internet's infinite supply of novel content provides a continuous low-grade reward stream — alongside FOMO (fear of missing out) as an anxiety-relief mechanism: checking relieves the anxiety of potentially having missed something, temporarily, before the cycle restarts. The distinction from specific platform addictions is clinically meaningful: platform-specific addictions are driven by the particular reward mechanisms of that platform, while generalized IUD appears driven by an underlying anxiety-regulation or attention-regulation deficit that the internet serves as a vehicle for, suggesting different treatment targets.</p>` },
+
+  { symbol:'Sh', name:'Shopping', col:0, row:3, severity:3, behavioral:true,
+    mechanism:'Dopaminergic anticipatory reward (wanting > liking dissociation); intermittent reinforcement via purchase; identity-based reward circuitry; serotonergic mood regulation; online retail algorithmic optimization',
+    metrics:{ dependence:18, harmSelf:32, harmOthers:18, diffQuit:30, estimated:true },
+    recognition:'No formal DSM-5 or ICD-11 category',
+    recognitionShort:'',
+    recognitionNote:'Compulsive Buying-Shopping Disorder (CBSD) has no formal DSM-5 or ICD-11 diagnostic status, though a 2021 Delphi expert consensus study (Müller et al., J Behav Addict) proposed formal criteria. It has been proposed for DSM inclusion and is among the most financially destructive behavioral addictions in clinical populations.',
+    dsm:{ category:'No formal DSM-5 or ICD-11 category', severity:'moderate', severityLabel:'Moderate',
+      withdrawal:false,
+      withdrawalNote:'No recognized withdrawal syndrome. Dysphoria and craving in the absence of shopping opportunity are documented but do not meet formal withdrawal criteria.',
+      prominent:[1,2,4,5,6,7,9,10],
+      note:'CBSD is clinically coded as Impulse Control Disorder Not Otherwise Specified or Other Specified Disruptive, Impulse-Control, and Conduct Disorder. The 2021 Delphi consensus criteria closely model Gambling Disorder, suggesting the field is approaching readiness for formal diagnostic recognition.' },
+      refs:[
+    {authors:'Faber RJ & O\'Guinn TC', year:1992, title:'A clinical screener for compulsive buying', journal:'Journal of Consumer Research'},
+    {authors:'Maraz A et al.', year:2016, title:'The prevalence of compulsive buying: A meta-analysis', journal:'Addiction'},
+    {authors:'Mueller A et al.', year:2010, title:'Buying or stealing? The neurobiological common ground of pathological stealing and compulsive buying', journal:'Social Cognitive and Affective Neuroscience'},
+    {authors:'Black DW', year:2007, title:'A review of compulsive buying disorder', journal:'World Psychiatry'},
+    {authors:'Granero R et al.', year:2016, title:'Compulsive buying disorder clustering based on sex, age, onset and personality traits', journal:'Comprehensive Psychiatry'}
+  ],
+  description:`<p>Compulsive buying-shopping disorder is characterized by persistent, irresistible urges to shop that result in financial harm, relational damage, and significant distress. The neuropsychological model distinguishes between "wanting" — dopaminergic anticipatory drive, which remains high and does not habituate — and "liking" — hedonic satisfaction with the purchase, which rapidly habituates and is often absent. Shopping is compelled not by pleasure but by the relief of craving, a dissociation identical in structure to substance use disorders.</p><p>Online retail has dramatically worsened the harm profile of compulsive shopping. One-click purchasing eliminates the natural delay that previously allowed impulse-control systems to engage; algorithmic product recommendation exploits revealed preferences to maximize purchase probability; same-day delivery removes the waiting period that previously served as a circuit-breaker. The financial harm is the most distinctive clinical feature: debt accumulation, concealed purchases, and bankruptcy are common presentations. It is substantially more prevalent among women, though this likely reflects both reporting bias and the deliberate targeting of marketing toward female consumers. No validated pharmacological treatment exists.</p>` },
+
+  { symbol:'Sm', name:'Social Media', col:0, row:4, severity:4, behavioral:true,
+    mechanism:'Variable ratio reinforcement (notifications, likes); dopaminergic anticipatory arousal; social comparison and status circuitry; FOMO-driven compulsion; algorithmic engagement optimization for maximum time-on-platform',
+    metrics:{ dependence:12, harmSelf:15, harmOthers:10, diffQuit:15, estimated:true },
+    recognition:'No formal DSM-5 or ICD-11 category',
+    recognitionShort:'',
+    recognitionNote:'Problematic Social Media Use (PSMU) has no DSM-5 or ICD-11 diagnostic status. Unlike Gaming Disorder, it did not achieve ICD-11 recognition. The Bergen Social Media Addiction Scale is widely used in research. The evidence for population-level harm — particularly in adolescent girls — is among the most rapidly accumulating in all of behavioral addiction research.',
+    dsm:{ category:'No formal DSM-5 or ICD-11 category', severity:'moderate', severityLabel:'Moderate',
+      withdrawal:false,
+      withdrawalNote:'Anxiety, restlessness, and dysphoria on forced abstinence are well-documented in experimental studies but do not constitute a recognized withdrawal syndrome.',
+      prominent:[1,2,3,4,6,7,9,10],
+      note:'The most consequential evidence concerns adolescent mental health: dose-response relationships between social media use and depression, anxiety, body image disturbance, and self-harm — especially in girls — are consistent across multiple large longitudinal datasets. The causal pathway remains statistically contested but is increasingly supported by natural experiment designs.' },
+      refs:[
+    {authors:'Andreassen CS et al.', year:2012, title:'Development of a Facebook addiction scale', journal:'Psychological Reports'},
+    {authors:'Andreassen CS', year:2015, title:'Online social network site addiction: A comprehensive review', journal:'Current Addiction Reports'},
+    {authors:'Vannucci A et al.', year:2017, title:'Social media use and anxiety in emerging adults', journal:'Journal of Affective Disorders'},
+    {authors:'Hunt MG et al.', year:2018, title:'No more FOMO: Limiting social media decreases loneliness and depression', journal:'Journal of Social and Clinical Psychology'},
+    {authors:'Twenge JM et al.', year:2018, title:'Increases in depressive symptoms, suicide-related outcomes, and suicide rates among US adolescents after 2010 and links to increased new media screen time', journal:'Clinical Psychological Science'}
+  ],
+  description:`<p>Social media addiction is structurally enabled by deliberate platform design: variable ratio reinforcement schedules — the same mechanism that makes slot machines compelling — govern notification delivery and content ranking; algorithmic personalization maximizes engagement time at the cost of wellbeing; and social comparison loops exploit status-seeking circuitry that is among the most ancient in the primate brain. The physiological basis of the "like" button is a brief dopaminergic anticipatory spike before checking — the wanting that precedes the finding — which is frequently stronger than the satisfaction of the finding itself.</p><p>The societal harm dimension is distinctive and disproportionate to the individual clinical picture. Population-level evidence — particularly from longitudinal studies of adolescent girls — shows dose-response relationships between social media use and depression, anxiety, eating disorders, sleep disruption, and self-harm. This harm is concentrated in a demographic with limited capacity to regulate their own consumption and limited regulatory protection from platform design. The corporate knowledge of this harm — documented in internal research subsequently leaked from major platforms — and the deliberate retention of harmful design features in the face of this knowledge represents one of the more significant ongoing public mental health failures of the 21st century.</p>` },
+
+  { symbol:'Gm', name:'Gaming', col:0, row:5, severity:5, behavioral:true,
+    mechanism:'Achievement and progression reward systems; variable reward schedules (loot boxes, rare drops); social belonging reinforcement; dopaminergic mesolimbic activation; loss aversion and sunk cost exploitation; near-miss engineering',
+    metrics:{ dependence:15, harmSelf:18, harmOthers:10, diffQuit:25, estimated:false },
+    recognition:'ICD-11 (Gaming Disorder, 6C51) / DSM-5 Section III (Internet Gaming Disorder)',
+    recognitionShort:'ICD-11',
+    recognitionNote:'Gaming Disorder is formally recognized in ICD-11 (6C51), effective 2022 — the first behavioral addiction beyond gambling to receive full ICD recognition. Internet Gaming Disorder appears in DSM-5 Section III as a Condition for Further Study but is not a formal DSM-5 diagnosis. The recognition generated significant scientific debate about premature pathologizing.',
+    dsm:{ category:'Internet Gaming Disorder (DSM-5 Section III, proposed)', severity:'moderate', severityLabel:'Moderate',
+      withdrawal:true,
+      withdrawalNote:'Withdrawal symptoms (irritability, anxiety, sadness) when gaming is removed are listed as a proposed DSM-5 Section III criterion and are recognized in ICD-11. Not a formally established withdrawal syndrome but clinically operative.',
+      prominent:[1,2,3,4,5,7,9,10,11],
+      note:'The gap between passionate engagement and pathology is the key diagnostic challenge — false-positive rates in population screening are high. ICD-11 requires impaired control, priority over other interests, and continuation despite harm, causing significant distress or functional impairment. DSM-5 Section III proposes 9 criteria requiring 5 or more over 12 months.' },
+      refs:[
+    {authors:'Petry NM et al.', year:2014, title:'An international consensus for assessing internet gaming disorder using the new DSM-5 approach', journal:'Addiction'},
+    {authors:'Lemmens JS et al.', year:2009, title:'Development and validation of a game addiction scale for adolescents', journal:'Media Psychology'},
+    {authors:'Kuss DJ & Griffiths MD', year:2012, title:'Internet and gaming addiction: A systematic literature review of neuroimaging studies', journal:'Brain Sciences'},
+    {authors:'King DL et al.', year:2013, title:'The Clinical Picture of Internet Gaming Disorder: A systematic review', journal:'Mental Health and Physical Activity'},
+    {authors:'Stevens MW et al.', year:2021, title:'Global prevalence of gaming disorder: A systematic review and meta-analysis', journal:'Australian & New Zealand Journal of Psychiatry'}
+  ],
+  description:`<p>Gaming disorder is the best-evidenced behavioral addiction after gambling. Neuroimaging studies demonstrate dopaminergic activation patterns in the ventral striatum analogous to substance cue-reactivity, structural and functional brain changes in heavy users including reduced prefrontal gray matter, and genetic overlap with gambling disorder suggesting shared neurobiological vulnerability. Modern game design deliberately exploits psychological vulnerabilities at scale: achievement systems create near-miss experiences, loot boxes apply variable ratio reinforcement explicitly modeled on slot machines, and multiplayer environments leverage social belonging and fear of exclusion.</p><p>The ICD-11 recognition in 2022 was a milestone that generated genuine scientific controversy — several addiction researchers published open letters arguing the evidence base was insufficient and that recognition would pathologize passionate gaming engagement. This tension — between clinical utility for a genuinely impaired minority and overdiagnosis risk for the engaged majority — is the central epistemological problem of behavioral addiction research. The financial dimension has escalated with the proliferation of microtransaction systems and loot boxes, which some regulatory jurisdictions have classified as gambling. Gaming disorder is disproportionately prevalent in young men, with East Asian clinical populations showing particularly high rates.</p>` },
+
+  { symbol:'Gb', name:'Gambling', col:0, row:6, severity:6, behavioral:true,
+    mechanism:'Near-miss and variable ratio reinforcement; dopaminergic prediction error signaling in ventral striatum; D2/D3 receptor downregulation; diminished prefrontal inhibitory control; stress-driven reinstatement; loss-chasing compulsion',
+    metrics:{ dependence:25, harmSelf:50, harmOthers:40, diffQuit:52, estimated:false },
+    recognition:'DSM-5 (Gambling Disorder, 312.31) / ICD-11 (6C50)',
+    recognitionShort:'DSM-5',
+    recognitionNote:'Gambling Disorder is the only behavioral addiction with full DSM-5 recognition, placed within the Substance-Related and Addictive Disorders chapter. This placement was itself a major nosological statement. ICD-11 also recognizes it within Disorders due to Addictive Behaviours. Day trading on financial markets is neurobiologically indistinguishable from gambling and falls within this clinical framework.',
+    dsm:{ category:'Gambling Disorder (DSM-5, 312.31 / ICD-11, 6C50)', severity:'severe', severityLabel:'Severe',
+      withdrawal:false,
+      withdrawalNote:'No formal withdrawal syndrome recognized in DSM-5 or ICD-11. Restlessness and irritability when attempting to stop are recognized DSM-5 criteria but fall short of a pharmacological withdrawal syndrome.',
+      prominent:[1,2,3,4,5,6,7,8,9,10],
+      note:'Gambling Disorder uses 10 DSM-5 criteria rather than the standard 11 SUD criteria — it has no withdrawal criterion meeting pharmacological standards, though restlessness and irritability are included. Severity: mild (4–5 criteria), moderate (6–7), severe (8–9). Day trading and high-frequency financial speculation are neurobiologically equivalent to gambling: variable ratio reinforcement, loss chasing, near-miss dynamics, and dopaminergic prediction error signaling are identical.' },
+      refs:[
+    {authors:'Lesieur HR & Rosenthal RJ', year:1991, title:'Pathological gambling: A review of the literature', journal:'Journal of Gambling Studies'},
+    {authors:'Blaszczynski A & Nower L', year:2002, title:'A pathways model of problem and pathological gambling', journal:'Addiction'},
+    {authors:'Potenza MN', year:2008, title:'The neurobiology of pathological gambling and drug addiction', journal:'Philosophical Transactions of the Royal Society B'},
+    {authors:'Grant JE et al.', year:2010, title:'Introduction to behavioral addictions', journal:'American Journal of Drug and Alcohol Abuse'},
+    {authors:'Petry NM', year:2005, title:'Pathological Gambling: Etiology, Comorbidity, and Treatment', journal:'American Psychological Association'}
+  ],
+  description:`<p>Gambling Disorder is the anchor of behavioral addiction science — the condition that established the neuroscientific case for non-substance addiction. Neuroimaging studies demonstrate dopaminergic prediction error signaling in the ventral striatum with wins and near-misses, reduced D2/D3 receptor availability directly analogous to stimulant use disorders, and prefrontal hypoactivation during inhibitory control tasks. The near-miss — a loss configured to look like a win — is a uniquely powerful reinforcer that gambling machines are deliberately engineered to maximize. Its recognition in DSM-5 within the Substance-Related and Addictive Disorders chapter was a watershed moment for the entire behavioral addiction field.</p><p>Day trading and high-frequency financial speculation warrant explicit inclusion here. The neurobiological profile is identical to casino gambling: variable ratio reinforcement from market price movements, loss chasing as trades are held beyond rational stop-loss points, near-miss dynamics as prices approach but fail to hit targets, and the same pattern of escalating financial risk driven by the same dopaminergic mechanisms. Several researchers have explicitly proposed day trading as a form of gambling disorder. The financial harm of gambling disorder is the highest of any behavioral addiction — debt, bankruptcy, criminal behavior, and family dissolution are common clinical presentations. Gambling disorder has among the highest rates of suicidal ideation of any psychiatric diagnosis, driven by the catastrophic, concealed, and rapidly escalating nature of financial ruin.</p>` },
+];
+
+// ═══ UTILITIES ═══
+function harmScore(el) {
+  const m = el.metrics;
+  if (!m) return 0;
+  // Sum of all four dimensions, averaged to keep 0–100 scale for cardBg
+  return Math.round((m.dependence + m.harmSelf + m.harmOthers + m.diffQuit) / 4);
+}
+
+// Row assignments: 10-point harm bands (row 1 = 0–9 … row 7 = 60–69)
+// Conflicts within a column resolved by nudging to the next available row
+(function assignRows() {
+  const rows = {
+    Bw:1, Cf:1,
+    Sm:2, Su:2, Kt:2, Md:2, Zd:2, Cd:2,
+    In:3, Ex:3, Ca:3, Am:3, Tr:3,
+    Gm:4, Ts:4, Bz:4, Co:4,
+    Sh:5, Wk:5, Ox:5,
+    Gb:6, Be:6, Al:6, Ni:6, Hr:6,
+    Sb:7, Mx:7, Fn:7,
+  };
+  elements.forEach(el => { el.row = rows[el.symbol] || 1; });
+})();
+
+function cardBg(hue, score) {
+  // score is 0-100 absolute harm (Nutt total or editorial equivalent)
+  const t = Math.min(score, 100) / 100;
+  const l = 96 - t * 18, s = 22 + t * 54;
+  return { bg:`hsl(${hue},${s}%,${l}%)`, border:`hsl(${hue},${s+8}%,${l-10}%)` };
+}
+function accentColor(hue) { return `hsl(${hue},62%,48%)`; }
+
+// ═══ RENDER GRID ═══
+const colHeadersEl = document.getElementById('col-headers');
+groups.forEach(g => {
+  const h = document.createElement('div');
+  h.className = 'col-header';
+  h.innerHTML = `<div class="col-header-name">${g.name}</div><div class="col-header-sub">${g.subtitle}</div>`;
+  colHeadersEl.appendChild(h);
+});
+
+const gridEl = document.getElementById('element-grid');
+elements.forEach((el, i) => {
+  const { bg, border } = cardBg(groups[el.col].hue, harmScore(el));
+  const card = document.createElement('div');
+  card.className = `element-card${el.behavioral ? ' behavioral' : ''}`;
+  card.style.cssText = `background:${bg}; border-color:${border}; grid-row:${el.row}; grid-column:${el.col+1};`;
+  const cornerContent = `<span class="card-number">${harmScore(el)}</span>`;
+  card.innerHTML = `
+    <div class="card-top">${cornerContent}</div>
+    <div class="card-symbol">${el.symbol}</div>
+    <div class="card-name">${el.name}</div>
+  `;
+  card.addEventListener('click', () => openDetail(i));
+  gridEl.appendChild(card);
+});
+
+// ═══ DETAIL ═══
+const gridPage   = document.getElementById('grid-page');
+const detailPage = document.getElementById('detail-page');
+const backBtn    = document.getElementById('back-btn');
+
+backBtn.addEventListener('click', () => {
+  detailPage.classList.remove('visible');
+  setTimeout(() => gridPage.classList.remove('exit'), 80);
+});
+
+function openDetail(idx) {
+  const el = elements[idx];
+  if (!el) { console.warn('openDetail: no element at index', idx); return; }
+  const m = el.metrics;
+  if (!m) { console.warn('openDetail: missing metrics on', el.symbol, el.name); return; }
+  const g  = groups[el.col];
+  const {bg, border} = cardBg(g.hue, harmScore(el));
+  const accent = accentColor(g.hue);
+
+  // Reset DSM collapsible to closed on every new card open
+  document.getElementById('dsm-collapsible').style.display = 'none';
+  document.getElementById('dsm-chevron').classList.remove('open');
+
+  // Hero
+  document.getElementById('d-card').style.background = bg;
+  document.getElementById('d-card').style.borderColor = border;
+  document.getElementById('d-card').style.borderStyle = 'solid';
+  document.getElementById('d-num').textContent   = el.behavioral ? el.recognitionShort : String(idx+1).padStart(2,'0');
+  document.getElementById('d-sym').textContent   = el.symbol;
+  document.getElementById('d-short').textContent = el.name;
+  document.getElementById('d-name').textContent  = el.name;
+  const badge = document.getElementById('d-badge');
+  badge.textContent = g.name;
+  badge.style.cssText = `background:${bg};border:1px solid ${border};color:rgba(0,0,0,0.6);`;
+  document.getElementById('d-mechanism').textContent = el.mechanism;
+
+  // Harm profile — unified 4-dimension block for all entries
+  const harmSection = document.getElementById('harm-profile-section');
+  const est = m.estimated;
+  const dims = [
+    { key:'dependence', label:'Dependence Likelihood' },
+    { key:'harmSelf',   label:'Harm to Self' },
+    { key:'harmOthers', label:'Harm to Others' },
+    { key:'diffQuit',   label:'Difficulty of Quitting' },
+  ];
+  const barsHtml = dims.map(d => `
+    <div class="severity-row">
+      <span class="severity-row-label">${d.label}</span>
+      <div class="severity-track"><div class="severity-fill" style="width:${m[d.key]}%;background:${accent};transition:width 0.6s cubic-bezier(0.4,0,0.2,1)"></div></div>
+      <span class="severity-score">${m[d.key]}</span>
+    </div>`).join('');
+  const citationText = el.behavioral
+    ? 'All scores reflect a structured synthesis of the peer-reviewed literature, calibrated for cross-addiction comparability. They are best understood as informed estimates rather than precise measurements.'
+    : 'All scores reflect a structured synthesis of the peer-reviewed literature — principally Anthony et al. (1994), Lopez-Quintero et al. (2011), and Nutt et al. (2010) — calibrated for cross-addiction comparability. They are best understood as informed estimates rather than precise measurements.';
+  harmSection.innerHTML = `
+    <div class="section-title">Harm & Addiction Profile</div>
+    <div class="section-citation">${citationText}</div>
+    <div class="severity-bars">${barsHtml}</div>`;
+
+  // DSM-5 diagnostic profile
+  document.getElementById('dsm-category').textContent = el.dsm.category;
+  const dsmBadge = document.getElementById('dsm-severity-badge');
+  dsmBadge.className = `dsm-severity-badge dsm-${el.dsm.severity}`;
+  dsmBadge.textContent = el.behavioral
+    ? `${el.dsm.severityLabel}`
+    : `${el.dsm.severityLabel} SUD`;
+  document.getElementById('dsm-note').textContent = el.dsm.note;
+
+  // Criteria checklist
+  const container = document.getElementById('criteria-container');
+  container.innerHTML = '';
+  DOMAIN_ORDER.forEach(domain => {
+    const domainCriteria = DSM_CRITERIA.filter(c => c.domain === domain);
+    const domainDiv = document.createElement('div');
+    domainDiv.className = 'criteria-domain-group';
+    domainDiv.innerHTML = `<div class="criteria-domain-header">${domain}</div>`;
+    const grid = document.createElement('div');
+    grid.className = 'criteria-grid';
+    domainCriteria.forEach(c => {
+      const prominent = el.dsm.prominent.includes(c.id);
+      const item = document.createElement('div');
+      item.className = `criterion-item${prominent?' prominent':''}`;
+      item.innerHTML = `
+        <div class="criterion-check ${prominent?'on':'off'}"></div>
+        <div class="criterion-text">${c.text}</div>
+      `;
+      grid.appendChild(item);
+    });
+    domainDiv.appendChild(grid);
+    container.appendChild(domainDiv);
+  });
+
+  // Description
+  if (el.scoreNote) {
+    const noteEl = document.createElement('p');
+    noteEl.style.cssText = 'font-size:0.67rem;color:var(--muted);font-style:italic;line-height:1.6;margin-top:18px;padding-top:14px;border-top:1px solid var(--subtle)';
+    noteEl.textContent = el.scoreNote;
+    document.getElementById('harm-profile-section').appendChild(noteEl);
+  }
+  document.getElementById('d-body').innerHTML = el.description;
+
+  // References section
+  const existingRefs = document.getElementById('d-refs');
+  if (existingRefs) existingRefs.remove();
+  if (el.refs && el.refs.length) {
+    const refsSection = document.createElement('div');
+    refsSection.id = 'd-refs';
+    refsSection.className = 'section-block refs-section';
+    refsSection.innerHTML = `
+      <div class="section-title">Key References</div>
+      <ol class="refs-list">
+        ${el.refs.map(r => `
+          <li class="ref-item">
+            <span class="ref-authors">${r.authors}</span>
+            <span class="ref-year">(${r.year})</span>
+            <span class="ref-title">${r.title}.</span>
+            <span class="ref-journal">${r.journal}.</span>
+          </li>`).join('')}
+      </ol>`;
+    document.getElementById('d-body').insertAdjacentElement('afterend', refsSection);
+  }
+
+  // Transition
+  gridPage.classList.add('exit');
+  setTimeout(() => {
+    detailPage.classList.add('visible');
+    detailPage.scrollTop = 0;
+  }, 80);
+}
+
+// DSM-5 collapsible toggle
+document.getElementById('dsm-toggle').addEventListener('click', () => {
+  const collapsible = document.getElementById('dsm-collapsible');
+  const chevron = document.getElementById('dsm-chevron');
+  const isOpen = collapsible.style.display !== 'none';
+  collapsible.style.display = isOpen ? 'none' : 'block';
+  chevron.classList.toggle('open', !isOpen);
+});
+
+// ── MOBILE SCALE ──
+function applyMobileScale() {
+  const vw = window.innerWidth;
+  if (vw >= 960) {
+    document.documentElement.style.removeProperty('--page-scale');
+    return;
+  }
+  const isMech = !document.getElementById('mech-view').classList.contains('hidden');
+  const contentWidth = isMech ? 892 : 634;
+  const scale = Math.min(1, (vw - 16) / contentWidth);
+  document.documentElement.style.setProperty('--page-scale', scale);
+  const pageInner = document.querySelector('.page-inner');
+  if (pageInner) {
+    const naturalHeight = pageInner.scrollHeight;
+    pageInner.style.marginBottom = ((scale - 1) * naturalHeight) + 'px';
+  }
+}
+
+window.addEventListener('resize', applyMobileScale);
+// Re-apply when switching views
+document.getElementById('btn-mech').addEventListener('click', () => setTimeout(applyMobileScale, 50));
+document.getElementById('btn-alt').addEventListener('click',  () => setTimeout(applyMobileScale, 50));
+applyMobileScale();
+
+// ═══════════════════════════════════════════════════
+// CLASSIFICATION VIEW
+// ═══════════════════════════════════════════════════
+
+const ALT_COLS = [
+  {
+    name: 'Behavioral',
+    subtitle: 'Non-dietary',
+    symbols: ['Ex','Rs','Wk','En','Iu','Sh','Sm','Gm','Cs','Gb'],
+    collapse: false,
+  },
+  {
+    name: 'Food',
+    subtitle: 'Food & eating',
+    symbols: ['Su','Be'],
+    collapse: false,
+  },
+  {
+    name: 'Legal Substance',
+    subtitle: 'Freely available / OTC',
+    symbols: ['Cf','Ni','Al'],
+    collapse: false,
+  },
+  {
+    name: 'Prescription Substance',
+    subtitle: 'Regulated medical use',
+    symbols: ['Zd','Bz','Cd','Tr','Ox','Am','Kt'],
+    collapse: false,
+  },
+  {
+    name: 'Controlled Substance',
+    subtitle: 'Primarily illicit',
+    symbols: ['Fn','Hr','Mx','Co','Md','Cb','Th','Sc'],
+    collapse: true,
+  },
+];
+
+// How many cards show before the expand button
+const COLLAPSE_SHOW = 4;
+
+function buildAltView() {
+  const headerRow = document.getElementById('alt-col-headers');
+  const gridRow   = document.getElementById('alt-grid');
+  headerRow.innerHTML = '';
+  gridRow.innerHTML   = '';
+
+  ALT_COLS.forEach((col, ci) => {
+    // ── Column header ──
+    const hd = document.createElement('div');
+    hd.className = 'alt-col-header';
+    hd.innerHTML = `<div class="col-header-name">${col.name}</div>
+                    <div class="col-header-sub">${col.subtitle}</div>`;
+    headerRow.appendChild(hd);
+
+    // ── Column body ──
+    const colEl = document.createElement('div');
+    colEl.className = 'alt-col';
+
+    // Resolve elements and sort by severity ascending (mirrors mechanism view top-to-bottom ordering)
+    const colElements = col.symbols
+      .map(sym => elements.find(e => e.symbol === sym))
+      .filter(Boolean)
+      .sort((a, b) => harmScore(a) - harmScore(b));
+
+    colElements.forEach((el, idx) => {
+      const card = buildAltCard(el, false);
+      card.dataset.altIdx = idx;
+      colEl.appendChild(card);
+    });
+
+    gridRow.appendChild(colEl);
+  });
+}
+
+function buildAltCard(el, hidden) {
+  const g = groups[el.col];
+  const { bg, border } = cardBg(g.hue, harmScore(el));
+  const dsmClass = `dsm-${el.dsm.severity}`;
+  const wdDot = el.dsm.withdrawal
+    ? `<div class="card-wd active" title="DSM-5 withdrawal recognized"></div>`
+    : `<div class="card-wd" title="No formal DSM-5 withdrawal syndrome"></div>`;
+
+  const idx = elements.indexOf(el);
+  const card = document.createElement('div');
+  card.className = `element-card${el.behavioral ? ' behavioral' : ''}`;
+  card.style.cssText = `background:${bg}; border-color:${border};${hidden ? ' display:none;' : ''}`;
+  const cornerContent = `<span class="card-number">${harmScore(el)}</span>`;
+  card.innerHTML = `
+    <div class="card-top">${cornerContent}</div>
+    <div class="card-symbol">${el.symbol}</div>
+    <div class="card-name">${el.name}</div>
+  `;
+  card.addEventListener('click', () => openDetail(idx));
+  return card;
+}
+
+// ── View toggle wiring ──
+const mechView = document.getElementById('mech-view');
+const altView  = document.getElementById('alt-view');
+let altBuilt   = false;
+
+document.getElementById('btn-mech').addEventListener('click', function() {
+  this.classList.add('active');
+  document.getElementById('btn-alt').classList.remove('active');
+  mechView.classList.remove('hidden');
+  altView.classList.remove('visible');
+  document.getElementById('site-subtitle').textContent = 'Organized by mechanism of action — severity increases downward';
+});
+
+document.getElementById('btn-alt').addEventListener('click', function() {
+  this.classList.add('active');
+  document.getElementById('btn-mech').classList.remove('active');
+  mechView.classList.add('hidden');
+  altView.classList.add('visible');
+  document.getElementById('site-subtitle').textContent = 'Organized by classification — behavioral · consumptive · legal · controlled';
+  if (!altBuilt) { buildAltView(); altBuilt = true; }
+});
+</script>
+</body>
+</html>
