@@ -312,12 +312,13 @@ function ratioLabel(dur, onset) {
 
 // ── RESPONSIVE DIMENSIONS ────────────────────────────────────────────────────
 const isMobile = window.innerWidth < 700;
+const isPortraitInit = isMobile && window.innerHeight > window.innerWidth;
 const mg = isMobile
   ? {top:60, right:16, bottom:70, left:56}
   : {top:72, right:220, bottom:90, left:100};
 const TW = isMobile ? 420 : 1010;
 const chartH = isMobile ? 400 : 558;  // H = TH - mg.top - mg.bottom
-const legendH = isMobile ? 360 : 0;   // extra height below chart for legend on mobile
+const legendH = isMobile ? (isPortraitInit ? 220 : 360) : 0;
 const TH = mg.top + chartH + mg.bottom + legendH;
 const W = TW - mg.left - mg.right;
 const H = chartH;
@@ -532,46 +533,59 @@ function hideTip(el, d) {
   activeDot = null;
 }
 
-// Desktop: hover
-dots.on("mouseover", function(ev, d) {
-  d3.select(this).attr("fill-opacity",1).attr("stroke-width",2.5).attr("stroke-opacity",0.95);
+function handleDotActivate(el, d, clientX, clientY) {
+  // If tapping the same dot, dismiss
+  if (activeDot === el) {
+    hideTip(activeDot, d);
+    return;
+  }
+  // Reset previous
+  if (activeDot) {
+    const prevD = d3.select(activeDot).datum();
+    hideTip(activeDot, prevD);
+  }
+  activeDot = el;
+  d3.select(el).attr("fill-opacity",1).attr("stroke-width",2.5).attr("stroke-opacity",0.95);
   showTip(d);
-}).on("mousemove", function(ev) {
-  positionTip(ev.clientX, ev.clientY);
-}).on("mouseout", function(ev, d) {
-  hideTip(this, d);
-});
+  positionTip(clientX, clientY);
+}
 
-// Mobile: tap to show, tap elsewhere to dismiss
+function handleDismiss(ev) {
+  if (!activeDot) return;
+  const onDot = ev.target.classList && ev.target.classList.contains("dot");
+  if (!onDot) {
+    const prevD = d3.select(activeDot).datum();
+    hideTip(activeDot, prevD);
+  }
+}
+
 if (isMobile) {
   tip.style.width = Math.min(280, window.innerWidth - 20) + "px";
+
+  // Use both touchstart and click for reliability across devices
   dots.on("touchstart", function(ev, d) {
     ev.preventDefault();
     ev.stopPropagation();
-    // If tapping the same dot, dismiss
-    if (activeDot === this) {
-      hideTip(activeDot, d);
-      return;
-    }
-    // Reset previous
-    if (activeDot) {
-      const prevD = d3.select(activeDot).datum();
-      hideTip(activeDot, prevD);
-    }
-    activeDot = this;
-    d3.select(this).attr("fill-opacity",1).attr("stroke-width",2.5).attr("stroke-opacity",0.95);
-    showTip(d);
     const touch = ev.touches[0];
-    positionTip(touch.clientX, touch.clientY);
+    handleDotActivate(this, d, touch.clientX, touch.clientY);
   }, {passive: false});
 
-  document.addEventListener("touchstart", function(ev) {
-    if (!activeDot) return;
-    const onDot = ev.target.classList && ev.target.classList.contains("dot");
-    if (!onDot) {
-      const prevD = d3.select(activeDot).datum();
-      hideTip(activeDot, prevD);
-    }
+  dots.on("click", function(ev, d) {
+    ev.stopPropagation();
+    handleDotActivate(this, d, ev.clientX, ev.clientY);
+  });
+
+  document.addEventListener("touchstart", handleDismiss);
+  document.addEventListener("click", handleDismiss);
+} else {
+  // Desktop: hover
+  dots.on("mouseover", function(ev, d) {
+    d3.select(this).attr("fill-opacity",1).attr("stroke-width",2.5).attr("stroke-opacity",0.95);
+    showTip(d);
+  }).on("mousemove", function(ev) {
+    positionTip(ev.clientX, ev.clientY);
+  }).on("mouseout", function(ev, d) {
+    hideTip(this, d);
   });
 }
 
@@ -630,21 +644,26 @@ function applyFilters() {
 }
 
 // ── LEGEND ────────────────────────────────────────────────────────────────────
-const lx = isMobile ? mg.left : mg.left + W + 22;
-let ly = isMobile ? mg.top + H + mg.bottom + 10 : mg.top;
-
-// Class (color) legend
+const isPortrait = isMobile && window.innerHeight > window.innerWidth;
 const legFS = isMobile ? "10px" : "12px";
 const legHeaderFS = isMobile ? "9px" : "10.5px";
 const legRowH = isMobile ? 14 : 16;
-svg.append("text").attr("x",lx).attr("y",ly)
+
+// Column positions: on portrait mobile, Class on left, Location+Prevalence on right
+const legCol1X = isMobile ? mg.left : mg.left + W + 22;
+const legCol2X = isPortrait ? mg.left + 190 : legCol1X; // right column for portrait
+const legTopY = isMobile ? mg.top + H + mg.bottom + 10 : mg.top;
+
+// ── CLASS legend (always column 1)
+let ly = legTopY;
+svg.append("text").attr("x",legCol1X).attr("y",ly)
   .style("fill", "var(--text-dim)").attr("font-family","IBM Plex Mono,monospace")
   .attr("font-size",legHeaderFS).attr("letter-spacing","0.14em").attr("class","legend-header").text("CLASS");
 ly += 15;
 
 Object.entries(CLASS_LABELS).forEach(([key, label]) => {
   const row = svg.append("g")
-    .attr("transform", `translate(${lx},${ly})`)
+    .attr("transform", `translate(${legCol1X},${ly})`)
     .style("cursor", "pointer")
     .style("pointer-events", "all")
     .on("click", function() {
@@ -669,16 +688,18 @@ Object.entries(CLASS_LABELS).forEach(([key, label]) => {
   ly += legRowH;
 });
 
-// Shape (location) legend
-ly += 12;
-svg.append("text").attr("x",lx).attr("y",ly)
+// ── RECEPTOR LOCATION legend (column 2 on portrait, else continues below)
+let ly2 = isPortrait ? legTopY : ly + 12;
+const locLegX = isPortrait ? legCol2X : legCol1X;
+
+svg.append("text").attr("x",locLegX).attr("y",ly2)
   .style("fill", "var(--text-dim)").attr("font-family","IBM Plex Mono,monospace")
   .attr("font-size",legHeaderFS).attr("letter-spacing","0.14em").attr("class","legend-header").text("RECEPTOR LOCATION");
-ly += 15;
+ly2 += 15;
 
 Object.entries(LOC_LABELS).forEach(([key, label]) => {
   const row = svg.append("g")
-    .attr("transform", `translate(${lx + 6},${ly})`)
+    .attr("transform", `translate(${locLegX + 6},${ly2})`)
     .style("cursor", "pointer")
     .style("pointer-events", "all")
     .on("click", function() {
@@ -702,24 +723,24 @@ Object.entries(LOC_LABELS).forEach(([key, label]) => {
     .attr("font-size",legFS).style("fill","var(--text-muted)").text(label);
 
   locRows[key] = row;
-  ly += isMobile ? 15 : 17;
+  ly2 += isMobile ? 15 : 17;
 });
 
-// Size / prevalence legend
-ly += 10;
-svg.append("text").attr("x",lx).attr("y",ly)
+// ── RECEPTOR PREVALENCE legend (same column as location)
+ly2 += 10;
+svg.append("text").attr("x",locLegX).attr("y",ly2)
   .style("fill", "var(--text-dim)").attr("font-family","IBM Plex Mono,monospace")
   .attr("font-size",legHeaderFS).attr("letter-spacing","0.14em").attr("class","legend-header").text("RECEPTOR PREVALENCE");
-ly += 13;
-svg.append("text").attr("x",lx).attr("y",ly)
+ly2 += 13;
+svg.append("text").attr("x",locLegX).attr("y",ly2)
   .style("fill", "var(--text-dim)").attr("font-family","IBM Plex Mono,monospace")
   .attr("font-size", isMobile ? "8px" : "9px").attr("class","legend-sub").text(isMobile ? "tap to set minimum" : "click to set minimum threshold");
-ly += 14;
+ly2 += 14;
 
 [{pct:10,lbl:"≥ 10%"},{pct:40,lbl:"≥ 40%"},{pct:85,lbl:"≥ 85%"}].forEach(s => {
   const r = szSc(s.pct);
   const row = svg.append("g")
-    .attr("transform", `translate(${lx + 1},${ly})`)
+    .attr("transform", `translate(${locLegX + 1},${ly2})`)
     .style("cursor", "pointer")
     .style("pointer-events", "all")
     .on("click", function() {
@@ -741,7 +762,7 @@ ly += 14;
     .attr("font-size","11px").text(s.lbl);
 
   pctRows[s.pct] = row;
-  ly += r * 2 + 7;
+  ly2 += r * 2 + 7;
 });
 
 
