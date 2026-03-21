@@ -183,14 +183,14 @@ body.light #theme-toggle .switch::after {
     <div class="tr"><span class="tl">Source location</span><span class="tv" id="trel"></span></div>
     <div class="tr"><span class="tl">Receptor location</span><span class="tv" id="tloc"></span></div>
     <div class="tr"><span class="tl">Receptor prevalence</span><span class="tv" id="trec"></span></div>
-    <div class="tr"><span class="tl">Time to binding</span><span class="tv" id="to"></span></div>
+    <div class="tr"><span class="tl">Time to first effect</span><span class="tv" id="to"></span></div>
     <div class="tr"><span class="tl">Effect duration</span><span class="tv" id="td"></span></div>
     <div class="tc" id="tcite" style="margin-top:9px; padding-top:9px; border-top:1px solid #1e2330; color:#5a6480; font-size:11px; line-height:1.55;"></div>
   </div>
 </div>
 <script>
 // ── DATA ─────────────────────────────────────────────────────────────────────
-// onset:     seconds from release to first receptor activation
+// onset:     seconds from release to first cellular effect
 // effectDur: seconds: downstream cellular effect duration (NOT mol half-life)
 // reach:     meters (used only in tooltip now)
 // role:      state function
@@ -394,20 +394,20 @@ if (isMobile) {
   g.append("text").attr("x",W/2).attr("y",H+48)
     .attr("text-anchor","middle")
     .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","10px").attr("letter-spacing","0.03em")
-    .attr("class","axis-label").style("fill", "var(--text-muted)").text("TIME TO RECEPTOR BINDING*");
+    .attr("class","axis-label").style("fill", "var(--text-muted)").text("TIME TO FIRST CELLULAR EFFECT*");
   g.append("text").attr("transform","rotate(-90)").attr("x",-H/2).attr("y",-40)
     .attr("text-anchor","middle")
     .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","10px").attr("letter-spacing","0.03em")
-    .attr("class","axis-label").style("fill", "var(--text-muted)").text("EFFECT DURATION");
+    .attr("class","axis-label").style("fill", "var(--text-muted)").text("EFFECT DURATION†");
 } else {
   g.append("text").attr("x",W/2).attr("y",H+66)
     .attr("text-anchor","middle")
     .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","14.5px").attr("letter-spacing","0.05em")
-    .attr("class","axis-label").style("fill", "var(--text-muted)").text("TIME TO RECEPTOR BINDING*");
+    .attr("class","axis-label").style("fill", "var(--text-muted)").text("TIME TO FIRST CELLULAR EFFECT*");
   g.append("text").attr("transform","rotate(-90)").attr("x",-H/2).attr("y",-74)
     .attr("text-anchor","middle")
     .attr("font-family","IBM Plex Sans,sans-serif").attr("font-size","14.5px").attr("letter-spacing","0.05em")
-    .attr("class","axis-label").style("fill", "var(--text-muted)").text("EFFECT DURATION");
+    .attr("class","axis-label").style("fill", "var(--text-muted)").text("EFFECT DURATION†");
 }
 
 // ── TITLE ─────────────────────────────────────────────────────────────────────
@@ -415,24 +415,24 @@ if (isMobile) {
   svg.append("text").attr("x",mg.left).attr("y",22)
     .attr("font-family","Playfair Display,serif")
     .attr("font-size","14px").attr("font-weight","700").attr("letter-spacing","0.02em")
-    .attr("class","title-text").style("fill", "var(--text)").text("Time to Receptor Binding vs. Effect Duration");
+    .attr("class","title-text").style("fill", "var(--text)").text("Neural Signaling Molecules");
   svg.append("text").attr("x",mg.left).attr("y",37)
     .attr("font-family","Playfair Display,serif")
     .attr("font-size","14px").attr("font-weight","700").attr("letter-spacing","0.02em")
-    .attr("class","title-text").style("fill", "var(--text)").text("of Neural Signaling Molecules");
+    .attr("class","title-text").style("fill", "var(--text)").text("Time to First Cellular Effect vs. Effect Duration");
   svg.append("text").attr("x",mg.left).attr("y",52)
     .attr("font-family","IBM Plex Mono,monospace")
     .attr("font-size","9px").attr("letter-spacing","0.03em")
-    .attr("class","subtitle-text").style("fill", "var(--text-dim)").text("42 data points · tap for details · tap legend to filter");
+    .attr("class","subtitle-text").style("fill", "var(--text-dim)").text("42 data points · hover/click for details · click legend to filter");
 } else {
   svg.append("text").attr("x",mg.left).attr("y",32)
     .attr("font-family","Playfair Display,serif")
     .attr("font-size","23px").attr("font-weight","700").attr("letter-spacing","0.02em")
-    .attr("class","title-text").style("fill", "var(--text)").text("Time to Receptor Binding vs. Effect Duration of Neural Signaling Molecules");
+    .attr("class","title-text").style("fill", "var(--text)").text("Neural Signaling Molecules — Time to First Cellular Effect vs. Effect Duration");
   svg.append("text").attr("x",mg.left).attr("y",52)
     .attr("font-family","IBM Plex Mono,monospace")
     .attr("font-size","12.5px").attr("letter-spacing","0.05em")
-    .attr("class","subtitle-text").style("fill", "var(--text-dim)").text("36 molecules · 42 data points · logarithmic axes · hover for details · click legend items to filter");
+    .attr("class","subtitle-text").style("fill", "var(--text-dim)").text("36 molecules · 42 data points · logarithmic axes · hover/click for details · click legend to filter");
 }
 
 // ── JITTER ────────────────────────────────────────────────────────────────────
@@ -811,7 +811,7 @@ const footY = Math.max(ly, ly2) + 16;
 const footX = isMobile ? mg.left : mg.left + W + 22;
 const footFS = isMobile ? "7px" : "9px";
 const footWrap = isMobile ? 180 : 200;
-const footnoteText = "*Time from molecular release to first cellular effect. For fast ion channels this equals binding time; for G-protein-coupled receptors it includes the signaling cascade; for gasotransmitters it is diffusion to intracellular targets.";
+const footnoteText = "*Time from molecular release to first cellular effect. For fast ion channels this equals binding time; for G-protein-coupled receptors it includes the signaling cascade; for gasotransmitters it is diffusion to intracellular targets. †Duration of the downstream cellular effect, not the half-life of the molecule itself. For ion channels this is the postsynaptic current; for second-messenger systems it includes the full signaling cascade; for genomic pathways it reflects the persistence of altered gene expression.";
 // Word-wrap the footnote into the available width
 const footWords = footnoteText.split(" ");
 let footLine = "";
